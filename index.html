@@ -340,7 +340,7 @@ function pickWeighted(list, wOf = c => c.weight === "max" ? 0 : (Number(c.weight
 }
 function resolveLabel(q){
   if (!q.label){ const i = IDX.get(q.from); return CARDS[i+1] || null; }
-  const list = (BY_NAME.get(q.label.trim()) || []).filter(c => test(c.cond));
+  const list = (BY_NAME.get(q.label.trim()) || []).filter(available);   // 다시 나오기까지 기다리는 햇수도 지킨다 (안 지키면 같은 카드가 맴돈다)
   return list.length ? pickWeighted(list) : null;
 }
 function atBound(){ return STATS.some(s => S.st[s.v] <= 0 || S.st[s.v] >= 100); }
@@ -924,7 +924,7 @@ function start(){
 buildStats();
 openTitle();
 maybeOfferInstall();
-window.__debug = { get S(){return S;}, skipped, get cur(){return cur;}, get META(){return META;} };
+window.__debug = { get S(){return S;}, skipped, choose, get cur(){return cur;}, get META(){return META;} };
 </script>
 </body>
 </html>
