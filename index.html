@@ -4,88 +4,133 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>문법의 나라</title>
+<meta name="theme-color" content="#2f3557">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="문법의 나라">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Noto+Serif+KR:wght@400;700&display=swap">
 <style>
 :root{
-  --ink:#2b2622; --paper:#efe4cf; --paper2:#e4d5b7; --gold:#c9a04a; --navy:#2f3557;
-  --red:#b5432f; --cel:#7fa393; --dim:#8a7c68;
+  --ink:#231e1a; --paper:#f3e9d6; --paper2:#e4d5b7; --gold:#c9a04a; --navy:#2f3557;
+  --red:#b5432f; --cel:#7fa393; --dim:#6d604f;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:var(--ink);color:var(--ink);font-family:"Noto Serif KR",serif;overflow:hidden;
+body{background:#1a1714;color:var(--ink);font-family:"Noto Serif KR",serif;overflow:hidden;
   display:flex;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:none}
 #app{position:relative;width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;
-  background:var(--paper) url(img/bg_hall.webp) center/cover;}
+  background:var(--paper) url(img/bg_hall.webp) center/cover;overflow:hidden}
 #app.dungeon{background-image:url(img/bg_dungeon.webp)}
-#app::before{content:"";position:absolute;inset:0;background:rgba(239,228,207,.55);pointer-events:none}
+#app::before{content:"";position:absolute;inset:0;background:rgba(239,228,207,.45);pointer-events:none}
 #app>*{position:relative}
-#app>.screen{position:absolute}
+#app>.screen,#app>.veil,#app>#flash,#app>#tut,#app>#toast{position:absolute}
+#app.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translate(-6px,2px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
 
 /* 수치 */
-#stats{display:flex;justify-content:space-around;padding:10px 8px 8px;background:var(--navy);
-  border-bottom:3px solid var(--gold)}
-.stat{position:relative;width:56px;text-align:center}
-.icon{position:relative;width:48px;height:48px;margin:0 auto;border-radius:50%;overflow:hidden;
-  background:#555;border:2px solid var(--gold)}
-.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(.45)}
+#stats{display:flex;justify-content:space-around;padding:16px 6px 8px;background:var(--navy);border-bottom:3px solid var(--gold)}
+.stat{position:relative;width:70px;text-align:center}
+.icon{position:relative;width:60px;height:60px;margin:0 auto;border-radius:50%;overflow:hidden;background:#555;border:3px solid var(--gold)}
+.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(.4)}
 .icon .fill{position:absolute;inset:0;overflow:hidden;transition:clip-path .5s}
 .icon .fill img{filter:none}
-.stat .lbl{font-size:11px;color:var(--paper);margin-top:2px}
-.dot{position:absolute;top:-6px;left:50%;transform:translateX(-50%) scale(0);width:10px;height:10px;
-  border-radius:50%;background:var(--paper);transition:transform .15s}
-.dot.big{width:16px;height:16px;top:-9px}
-.dot.on{transform:translateX(-50%) scale(1)}
-.icon.up{animation:up .6s} .icon.down{animation:down .6s}
-@keyframes up{50%{box-shadow:0 0 0 5px #9fd18b}} @keyframes down{50%{box-shadow:0 0 0 5px #e06a52}}
+.stat .lbl{font-size:14px;font-weight:700;color:var(--paper);margin-top:3px}
+.dot{position:absolute;top:-13px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;
+  background:#ffe9a8;box-shadow:0 0 8px 2px #ffd36a;transform:scale(0);transition:transform .15s}
+.dot.big{width:20px;height:20px;margin-left:-10px;top:-17px}
+.dot.on{transform:scale(1)}
+.stat.hot .icon{box-shadow:0 0 0 3px #ffe9a8,0 0 14px 4px #ffd36a}
+.icon.up{animation:up .7s} .icon.down{animation:down .7s}
+@keyframes up{30%{transform:scale(1.25);box-shadow:0 0 0 6px #9fd18b}}
+@keyframes down{30%{transform:scale(.8);box-shadow:0 0 0 6px #e06a52}}
 
 /* 대사 */
-#q{flex:0 0 auto;min-height:120px;display:flex;align-items:center;justify-content:center;
-  padding:14px 22px;text-align:center;font-size:17px;line-height:1.55;white-space:pre-line}
+#q{flex:0 0 auto;margin:12px 14px 0;min-height:118px;display:flex;align-items:center;justify-content:center;
+  padding:12px 16px;text-align:center;font-size:19px;font-weight:700;line-height:1.55;white-space:pre-line;color:var(--ink);
+  background:rgba(243,233,214,.96);border:2px solid var(--gold);border-radius:12px;box-shadow:0 3px 10px rgba(0,0,0,.18)}
+#q.small{font-size:17px}
 
 /* 카드 */
-#stage{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
-#cardwrap{position:relative;width:min(72vw,300px);aspect-ratio:3/4;perspective:800px}
-.back{position:absolute;inset:0;border-radius:14px;background:url(img/card_back.webp) center/cover;
-  box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#stage{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;padding-top:10px}
+#cardwrap{position:relative;width:min(72vw,300px,calc((100dvh - 360px)*.75));aspect-ratio:3/4;perspective:900px}
+.back{position:absolute;inset:0;border-radius:14px;background:url(img/card_back.webp) center/cover;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 #card{position:absolute;inset:0;border-radius:14px;background:var(--navy);border:3px solid var(--gold);
-  box-shadow:0 8px 22px rgba(0,0,0,.4);overflow:hidden;touch-action:none;cursor:grab;
-  transition:transform .25s ease-out}
+  box-shadow:0 8px 22px rgba(0,0,0,.4);overflow:hidden;touch-action:none;cursor:grab;transition:transform .25s ease-out}
+#card.enter{animation:enter .35s ease-out}
+@keyframes enter{from{transform:rotateY(90deg) scale(.92)}to{transform:none}}
 #card.drag{transition:none;cursor:grabbing}
 #card.fly{transition:transform .3s ease-in,opacity .3s}
 #card::after{content:"";position:absolute;inset:6px;border:1px solid var(--gold);border-radius:9px;pointer-events:none}
 #card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;pointer-events:none;-webkit-user-drag:none}
 #card.end{background:#000}
 #card.end img{display:none}
-#card.grammar{border-color:#d9b25c;background:#6b3a2a}
-#choice{position:absolute;left:0;right:0;top:0;height:30%;display:flex;align-items:center;padding:0 18px;
-  background:rgba(43,38,34,.85);color:var(--paper);font-size:16px;font-weight:700;opacity:0;transition:opacity .1s}
+#card.grammar{border-color:#e2bd62;box-shadow:0 0 0 3px #6b3a2a,0 8px 22px rgba(0,0,0,.4)}
+#card.ok{box-shadow:0 0 0 5px #e9c45e,0 0 30px 10px #ffd36a}
+#card.no{box-shadow:0 0 0 5px var(--red),0 0 30px 10px #e06a52}
+#choice{position:absolute;left:0;right:0;top:0;min-height:28%;display:flex;align-items:center;padding:10px 18px;
+  background:rgba(25,22,19,.9);color:#fff8e6;font-size:19px;font-weight:700;line-height:1.35;opacity:0;transition:opacity .1s}
 #choice.r{justify-content:flex-start;text-align:left} #choice.l{justify-content:flex-end;text-align:right}
-#who{margin-top:10px;font-family:"Song Myung",serif;font-size:20px;min-height:28px}
+#who{margin-top:8px;font-family:"Song Myung",serif;font-size:24px;min-height:32px;color:var(--ink);
+  background:rgba(243,233,214,.9);padding:0 14px;border-radius:14px}
+#who:empty{background:none}
 
 /* 연표 */
-#bar{display:flex;justify-content:space-between;align-items:center;padding:8px 14px calc(8px + env(safe-area-inset-bottom));
-  background:var(--navy);color:var(--paper);border-top:3px solid var(--gold);font-size:14px}
-#bar b{font-family:"Song Myung",serif;font-size:17px;font-weight:400}
+#bar{display:flex;justify-content:space-between;align-items:center;padding:9px 14px calc(9px + env(safe-area-inset-bottom));
+  background:var(--navy);color:var(--paper);border-top:3px solid var(--gold);font-size:15px}
+#bar b{font-family:"Song Myung",serif;font-size:19px;font-weight:400}
+
+/* 안내·알림 */
+#tut{inset:0;z-index:4;display:none;pointer-events:none;background:rgba(20,17,14,.45)}
+#tut.on{display:block}
+#tut .box{position:absolute;left:16px;right:16px;bottom:64px;background:var(--paper);border:3px solid var(--gold);border-radius:14px;
+  padding:14px 16px;font-size:18px;font-weight:700;line-height:1.6;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#tut .hand{font-size:40px;display:inline-block;animation:hand 1.4s ease-in-out infinite}
+@keyframes hand{0%,100%{transform:translateX(-40px)}50%{transform:translateX(40px)}}
+#toast{left:50%;top:96px;transform:translate(-50%,-30px);opacity:0;z-index:8;background:var(--navy);color:var(--paper);
+  border:2px solid var(--gold);border-radius:20px;padding:8px 16px;font-size:15px;font-weight:700;white-space:nowrap;
+  transition:transform .3s,opacity .3s;pointer-events:none}
+#toast.on{transform:translate(-50%,0);opacity:1}
+#flash{inset:0;z-index:6;pointer-events:none;background:#b5241a;opacity:0}
+#flash.on{animation:flash .7s}
+@keyframes flash{20%{opacity:.55}100%{opacity:0}}
 
 /* 덮개 화면 */
-.screen{position:absolute;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:24px;gap:16px}
-.screen.on{display:flex}
-#title{background:var(--paper) url(img/bg_cover.webp) center/cover}
-#title h1{font-family:"Song Myung",serif;font-size:46px;font-weight:400;color:var(--ink);
-  text-shadow:0 0 12px var(--paper),0 0 4px var(--paper);margin-top:-30vh}
-#title fieldset{border:2px solid var(--gold);border-radius:10px;padding:10px 14px;background:rgba(239,228,207,.92);
-  display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;text-align:left;font-size:15px}
-#title legend{padding:0 6px;font-weight:700}
-#title label{display:flex;gap:6px;align-items:center}
-.btn{font:inherit;font-size:17px;padding:10px 26px;border-radius:24px;border:2px solid var(--gold);
+.screen,.veil{inset:0;z-index:5;display:none;flex-direction:column;align-items:center;text-align:center;padding:20px;gap:12px}
+.screen.on,.veil.on{display:flex}
+#title{background:var(--paper) url(img/bg_cover.webp) center/cover;justify-content:space-between}
+#title h1{font-family:"Song Myung",serif;font-size:50px;font-weight:400;color:var(--ink);margin-top:8vh;
+  text-shadow:0 0 14px var(--paper),0 0 4px var(--paper)}
+#panel{width:100%;max-width:360px;display:flex;flex-direction:column;gap:10px;background:rgba(243,233,214,.94);
+  border:2px solid var(--gold);border-radius:14px;padding:14px}
+#panel fieldset{border:1px solid var(--gold);border-radius:10px;padding:6px 12px 10px;
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;text-align:left;font-size:16px}
+#panel legend{padding:0 6px;font-weight:700}
+#panel label{display:flex;gap:6px;align-items:center}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{position:relative;font:inherit;font-size:17px;font-weight:700;padding:10px 14px;border-radius:24px;border:2px solid var(--gold);
   background:var(--navy);color:var(--paper);cursor:pointer}
+.btn.ghost{background:var(--paper);color:var(--ink)}
+.btn .new{position:absolute;top:-3px;right:-3px;width:12px;height:12px;border-radius:50%;background:var(--red);border:2px solid var(--paper)}
 .btn:focus-visible,input:focus-visible{outline:3px solid var(--red);outline-offset:2px}
-#msg{color:var(--red);font-size:14px;min-height:20px;background:rgba(239,228,207,.9);border-radius:6px;padding:0 6px}
-#death{background:#000;color:var(--paper)}
-#death h2{font-family:"Song Myung",serif;font-size:34px;font-weight:400}
-#death p{line-height:1.7;max-width:320px}
+.small{font-size:14px;color:var(--dim)}
+#msg{color:var(--red);font-size:14px;min-height:18px;font-weight:700}
+#death{background:#000;color:var(--paper);justify-content:center}
+#death h2{font-family:"Song Myung",serif;font-size:36px;font-weight:400}
+#death p{line-height:1.8;max-width:320px;font-size:17px}
+.veil{background:#1d1a17;justify-content:flex-start;color:var(--paper)}
+.veil h2{font-family:"Song Myung",serif;font-size:30px;font-weight:400;color:#f3d891;margin-top:6px}
+.list{width:100%;max-width:400px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;text-align:left;touch-action:pan-y;padding-bottom:6px}
+.item{background:var(--paper);color:var(--ink);border-radius:10px;padding:10px 12px;border:2px solid transparent}
+.item b{font-size:16px}
+.item .d{font-size:14px;color:var(--dim);margin-top:2px}
+.item.lock{opacity:.55}
+.item.done{border-color:var(--gold)}
+.item.done b::after{content:" ✓";color:#a37b1f}
+.bar2{height:8px;background:#d8c7a6;border-radius:4px;margin-top:6px;overflow:hidden}
+.bar2 i{display:block;height:100%;background:var(--gold)}
+.head{color:#f3d891;font-weight:700;font-size:17px;margin-top:6px;display:flex;justify-content:space-between}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 </head>
@@ -103,16 +148,48 @@ body{background:var(--ink);color:var(--ink);font-family:"Noto Serif KR",serif;ov
   <div id="bar"><span><b id="king"></b></span><span id="years"></span></div>
   <p id="help" class="sr">카드를 왼쪽이나 오른쪽으로 밀어 고릅니다. 키보드 왼쪽·오른쪽 화살표로도 고를 수 있습니다.</p>
 
+  <div id="tut" aria-live="polite"><div class="box"><div id="tutText"></div><span class="hand" aria-hidden="true">👆</span></div></div>
+  <div id="toast" role="status"></div>
+  <div id="flash"></div>
+
   <section id="title" class="screen" aria-label="시작 화면">
     <h1>문법의 나라</h1>
-    <fieldset><legend>문법 단원</legend><div id="units" style="display:contents"></div></fieldset>
-    <div id="msg" role="alert"></div>
-    <button class="btn" id="btnNew">새로 시작</button>
-    <button class="btn" id="btnCont" hidden>이어 하기</button>
+    <div id="panel">
+      <fieldset><legend>문법 단원</legend><div id="units" style="display:contents"></div></fieldset>
+      <div id="msg" role="alert"></div>
+      <div class="row">
+        <button class="btn" id="btnNew">새로 시작</button>
+        <button class="btn" id="btnCont" disabled>이어 하기</button>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="btnAch">도전과제</button>
+        <button class="btn ghost" id="btnMis">오늘·이번 주 과제</button>
+      </div>
+      <button class="btn ghost" id="btnInstall" hidden>바탕화면에 두기</button>
+      <label class="small" style="justify-content:center"><input type="checkbox" id="vibeOff"> 진동 끄기</label>
+    </div>
   </section>
+
   <section id="death" class="screen" aria-live="assertive">
     <h2 id="dName"></h2><p id="dInfo"></p>
     <button class="btn" id="btnNext">다음 왕 즉위</button>
+    <button class="btn ghost" id="btnHome">시작 화면으로</button>
+  </section>
+
+  <section id="vAch" class="veil" aria-label="도전과제">
+    <h2>도전과제</h2><div class="small" id="achSum" style="color:#e9dcc0"></div>
+    <div class="list" id="achList"></div>
+    <button class="btn" data-close>닫기</button>
+  </section>
+  <section id="vMis" class="veil" aria-label="과제">
+    <h2>과제</h2>
+    <div class="list" id="misList"></div>
+    <button class="btn" data-close>닫기</button>
+  </section>
+  <section id="vInstall" class="veil" aria-label="바탕화면에 두기" style="justify-content:center">
+    <h2>바탕화면에 두기</h2>
+    <p id="instBody" style="line-height:2;font-size:17px;max-width:320px"></p>
+    <button class="btn" data-close>알겠다</button>
   </section>
 </main>
 
@@ -120,8 +197,8 @@ body{background:var(--ink);color:var(--ink);font-family:"Noto Serif KR",serif;ov
 <script src="dialogue.js"></script>
 <script>
 "use strict";
-/* ---------- 기본 자료 ---------- */
-const STATS = [ // 화면 이름, 원작 변수 이름, 아이콘
+/* ================= 기본 자료 ================= */
+const STATS = [
   {k:"문법", v:"spiritual",  img:"icon_munbeop"},
   {k:"민심", v:"demography", img:"icon_minsim"},
   {k:"군사", v:"military",   img:"icon_gunsa"},
@@ -136,7 +213,19 @@ const NAMES = {diplomat:"사신",general:"대장군",priest:"대제학",jester:"
   soldier:"병졸",anyone:"",senator:"그림자 정승",king:"왕",lover:"정인",dungeon:""};
 const DEATH_NAME = {spiritual:["난종","엄종"],military:["애종","위종"],demography:["기종","민종"],treasure:["빈종","부종"]};
 const PLAIN_NAMES = ["건종","율종","담종","찬종","운종","연종","보종","아종"];
-const START_YEAR = 603, GRAMMAR_EVERY = 4, SAVE_KEY = "munbeop-nara-v1";
+const START_YEAR = 603, SAVE_KEY = "munbeop-nara-v1", META_KEY = "munbeop-nara-meta";
+const GRAMMAR_GAP = 3;          // 이야기 카드 3장마다 문법 카드 1장 (4장에 1장)
+
+/* 문법 카드에 붙는 수치 짝: 맞히면 그대로, 틀리면 부호가 반대 */
+const G_PATTERNS = [
+  {w:25, s:{문법:10}},
+  {w:15, s:{문법:5, 민심:5}},
+  {w:10, s:{문법:5, 군사:5}},
+  {w:10, s:{문법:5, 국고:5}},
+  {w:10, s:{문법:10, 국고:-5}},
+  {w:15, s:{문법:5, 민심:5, 군사:-5}},
+  {w:15, rescue:true},          // 가장 위험한 수치를 구한다
+];
 
 const CARDS = DIALOGUE.filter(c => !c.hold);
 for (const c of CARDS) c.name = (c.name || "").trim();
@@ -149,29 +238,33 @@ for (const c of CARDS) if (c.name && c.name !== "_") {
 const DECK = CARDS.filter(c => !c.name.startsWith("_") && !(c.char||"").startsWith("end"));
 const EFFECT_BY_TAG = new Map(EFFECTS.filter(e=>!e.hold).map(e=>[e.tag,e]));
 const KEY_OF = Object.fromEntries(STATS.map(s=>[s.k,s.v]));
+const NAME_OF = Object.fromEntries(STATS.map(s=>[s.v,s.k]));
 
-/* ---------- 상태 ---------- */
-let S = null;          // 저장되는 게임 상태
-let cur = null;        // 지금 보이는 카드 {kind, card, ...}
-const skipped = new Set(); // 해석 못 한 기호 (개발용)
-
+/* ================= 저장 ================= */
+let S = null, cur = null;
+const skipped = new Set();
 function newGame(units){
-  S = {units, year:START_YEAR, dynasty:1, age:0, kingName:"", reignStart:START_YEAR,
+  S = {units, year:START_YEAR, dynasty:1, age:0, reignStart:START_YEAR,
        st:{spiritual:50,military:50,demography:50,treasure:50},
-       vars:{}, seen:{}, queue:[], story:0, effects:{}, kings:[]};
+       vars:{}, seen:{}, queue:[], since:0, effects:{}, kings:[], rg:{right:0,all:0}};
 }
 function newReign(){
   for (const k of Object.keys(S.vars)) if (!/_keep$/.test(k) && !/^has_/.test(k)) delete S.vars[k];
   S.st = {spiritual:50,military:50,demography:50,treasure:50};
-  S.age = 0; S.reignStart = S.year; S.queue = []; S.effects = {};
+  S.age = 0; S.reignStart = S.year; S.queue = []; S.effects = {}; S.rg = {right:0,all:0};
   for (const k of Object.keys(S.seen)) if (S.seen[k] === "reign") delete S.seen[k];
 }
 function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
 function load(){ try{ const t = localStorage.getItem(SAVE_KEY); return t ? JSON.parse(t) : null; }catch(e){ return null; } }
 
-/* ---------- 조건·명령 해석 ---------- */
+let META = {};
+try{ META = JSON.parse(localStorage.getItem(META_KEY)) || {}; }catch(e){ META = {}; }
+META.tot = META.tot || {}; META.ach = META.ach || {}; META.labels = META.labels || {}; META.unit = META.unit || {};
+function saveMeta(){ try{ localStorage.setItem(META_KEY, JSON.stringify(META)); }catch(e){} }
+
+/* ================= 조건·명령 해석 ================= */
 function getVar(name){
-  if (name in S.st) return S.st[name];
+  if (S && name in S.st) return S.st[name];
   switch(name){
     case "money": return S.st.treasure;
     case "year": return S.year;
@@ -186,7 +279,7 @@ function test(cond){
   if (!cond) return true;
   for (let t of cond.split(/\s+and\s+/)){
     t = t.trim(); if (!t) continue;
-    let m = t.match(/^(!?)([A-Za-z_][\w]*)$/);
+    let m = t.match(/^(!?)([A-Za-z_]\w*)$/);
     if (m){ const v = getVar(m[2]); if (m[1] ? v : !v) return false; continue; }
     m = t.match(/^([A-Za-z_]\w*)\s*(<=|>=|<|>|=)\s*(-?[\d.]+)$/);
     if (m){
@@ -203,7 +296,11 @@ function run(cmd, card){
   for (let t of cmd.split(/\s+and\s+/)){
     t = t.trim(); if (!t) continue;
     let m = t.match(/^(>+)(.*)$/);
-    if (m){ S.queue.push({after:m[1].length-1, from:card.id, label:m[2]}); continue; }
+    if (m){
+      S.queue.push({after:m[1].length-1, from:card.id, label:m[2]});
+      if (m[2]) META.labels[m[2].trim()] = 1;
+      continue;
+    }
     m = t.match(/^(add|del)_(\w+)$/);
     if (m){ S.vars["has_"+m[2]] = m[1]==="add"; continue; }
     m = t.match(/^!(\w+)$/);
@@ -215,7 +312,6 @@ function run(cmd, card){
     skipped.add(t);
   }
 }
-/* 수치 값: "10" "-10" "10?" "?20" "-20?30" */
 function parseVal(s){
   s = String(s).trim();
   let m = s.match(/^(-?\d+)\?(-?\d+)$/);
@@ -226,17 +322,17 @@ function parseVal(s){
   skipped.add("값:"+s); return {n:0, hide:true};
 }
 
-/* ---------- 카드 뽑기 ---------- */
+/* ================= 카드 뽑기 ================= */
 function available(c){
   const s = S.seen[c.id];
   if (s === "del" || s === "reign") return false;
   if (typeof s === "number" && S.year < s) return false;
   return test(c.cond);
 }
-function pickWeighted(list){
+function pickWeighted(list, wOf = c => c.weight === "max" ? 0 : (Number(c.weight) || 10)){
   const max = list.filter(c => c.weight === "max");
   if (max.length) return max[Math.floor(Math.random()*max.length)];
-  const w = list.map(c => Number(c.weight) || 10);
+  const w = list.map(wOf);
   let r = Math.random()*w.reduce((a,b)=>a+b,0);
   for (let i=0;i<list.length;i++){ r -= w[i]; if (r <= 0) return list[i]; }
   return list[list.length-1];
@@ -247,8 +343,19 @@ function resolveLabel(q){
   return list.length ? pickWeighted(list) : null;
 }
 function atBound(){ return STATS.some(s => S.st[s.v] <= 0 || S.st[s.v] >= 100); }
+function grammarCard(){
+  const pool = GRAMMAR.filter(g => S.units.includes(g.u));
+  if (!pool.length) return null;
+  const g = pool[Math.floor(Math.random()*pool.length)];
+  const pat = pickWeighted(G_PATTERNS, p => p.w);
+  let eff;
+  if (pat.rescue){                       // 50에서 가장 멀리 있는 수치
+    const t = STATS.map(s => s.v).sort((a,b) => Math.abs(S.st[b]-50) - Math.abs(S.st[a]-50))[0];
+    eff = {rescue:t};
+  } else eff = {s:pat.s};
+  return {kind:"grammar", g, isO: Math.random() < .5, eff};
+}
 function nextCard(){
-  // 1) 바로 이어지는 카드
   for (const q of S.queue) q.after--;
   const due = S.queue.findIndex(q => q.after < 0);
   if (due >= 0){
@@ -257,41 +364,33 @@ function nextCard(){
     if (c) return {kind:"story", card:c};
     if (q.label && !BY_NAME.has(q.label.trim())) skipped.add("이름표:"+q.label);
   }
-  // 2) 수치 끝 → 강제 카드 (조건에 그 수치 =0/=100 이 들어간 카드)
   if (atBound()){
-    const forced = CARDS.filter(c => /(spiritual|military|demography|treasure)=(0|100)/.test(c.cond) && test(c.cond) && !c.name.startsWith("_") && !(c.char||"").startsWith("end"));
+    const forced = CARDS.filter(c => /(spiritual|military|demography|treasure)=(0|100)/.test(c.cond) && test(c.cond)
+      && !c.name.startsWith("_") && !(c.char||"").startsWith("end"));
     if (forced.length) return {kind:"story", card:pickWeighted(forced)};
     return {kind:"death"};
   }
-  // 3) 문법 카드
-  if (S.story >= GRAMMAR_EVERY && !S.queue.length){
-    const pool = GRAMMAR.filter(g => S.units.includes(g.u));
-    if (pool.length){
-      S.story = 0;
-      const g = pool[Math.floor(Math.random()*pool.length)];
-      return {kind:"grammar", g, isO: Math.random() < .5};
-    }
+  if (S.since >= GRAMMAR_GAP){
+    const g = grammarCard();
+    if (g){ S.since = Math.min(S.since - GRAMMAR_GAP, GRAMMAR_GAP*2); return g; }
   }
-  // 4) 일반 카드
   const list = DECK.filter(available);
-  S.story++;
   return {kind:"story", card: list.length ? pickWeighted(list) : DECK[Math.floor(Math.random()*DECK.length)]};
 }
 
-/* ---------- 글 다듬기 ---------- */
+/* ================= 글 다듬기 ================= */
 function hasBatchim(ch){
   const c = ch.charCodeAt(0);
   if (c >= 0xAC00 && c <= 0xD7A3) return (c-0xAC00)%28 !== 0;
   return /[136780lmnr]/i.test(ch);
 }
+const JOSA = {"이(가)":["이","가"],"가(이)":["이","가"],"은(는)":["은","는"],"는(은)":["은","는"],"을(를)":["을","를"],
+  "를(을)":["을","를"],"과(와)":["과","와"],"와(과)":["과","와"],"(으)로":["으로","로"],"이(라)":["이라","라"],"아(야)":["아","야"]};
 function fixJosa(t){
   return t.replace(/([가-힣A-Za-z0-9])(이\(가\)|은\(는\)|을\(를\)|과\(와\)|와\(과\)|를\(을\)|가\(이\)|는\(은\)|\(으\)로|이\(라\)|아\(야\))/g,(all,ch,j)=>{
-    const b = hasBatchim(ch);
-    const pairs = {"이(가)":["이","가"],"가(이)":["이","가"],"은(는)":["은","는"],"는(은)":["은","는"],"을(를)":["을","를"],
-      "를(을)":["을","를"],"과(와)":["과","와"],"와(과)":["과","와"],"(으)로":["으로","로"],"이(라)":["이라","라"],"아(야)":["아","야"]};
-    const p = pairs[j]; if (!p) return all;
+    const p = JOSA[j]; if (!p) return all;
     if (j==="(으)로" && ch.charCodeAt(0)>=0xAC00 && (ch.charCodeAt(0)-0xAC00)%28===8) return ch+"로";
-    return ch + (b ? p[0] : p[1]);
+    return ch + (hasBatchim(ch) ? p[0] : p[1]);
   });
 }
 function fill(t){
@@ -304,7 +403,27 @@ function fill(t){
   return fixJosa(t);
 }
 
-/* ---------- 화면 ---------- */
+/* ================= 손맛 ================= */
+const VIBE = {swipe:[12], big:[30,40,30], right:[25,40,60], wrong:[90], death:[200,80,300], ach:[40,60,40,60,80]};
+let lastVibe = 0;
+function vibe(kind){
+  if (META.vibeOff || !("vibrate" in navigator)) return;   // 아이폰 사파리는 지원하지 않는다
+  const now = performance.now(); if (now - lastVibe < 80) return; lastVibe = now;
+  try{ navigator.vibrate(VIBE[kind] || [20]); }catch(e){}
+}
+function shake(){ const a = $("app"); a.classList.remove("shake"); void a.offsetWidth; a.classList.add("shake"); }
+let toastT = null, toastQ = [];
+function toast(t){
+  toastQ.push(t); if (toastT) return;
+  const step = () => {
+    const m = toastQ.shift(); if (!m){ toastT = null; return; }
+    $("toast").textContent = m; $("toast").classList.add("on");
+    toastT = setTimeout(() => { $("toast").classList.remove("on"); toastT = setTimeout(step, 350); }, 2000);
+  };
+  step();
+}
+
+/* ================= 화면 ================= */
 const $ = id => document.getElementById(id);
 const card = $("card"), choice = $("choice");
 function buildStats(){
@@ -329,7 +448,7 @@ function drawStats(prev){
 function drawBar(){
   $("king").textContent = `해동 제${S.dynasty}대 왕`;
   $("years").textContent = `재위 ${S.age}년 · 해동 ${S.year}년`;
-  $("app").classList.toggle("dungeon", !!S.vars.intheDungeon || (cur && cur.card && /^dungeon/.test(cur.card.char||"")));
+  $("app").classList.toggle("dungeon", !!S.vars.intheDungeon || !!(cur && cur.card && /^dungeon/.test(cur.card.char||"")));
 }
 function imgOf(ch){
   ch = (ch||"").split(">")[0];
@@ -339,6 +458,7 @@ function imgOf(ch){
 }
 function show(){
   card.className = ""; card.style.transform = ""; card.style.opacity = "";
+  void card.offsetWidth; card.classList.add("enter");
   choice.style.opacity = 0;
   const img = card.querySelector("img");
   let text = "", who = "", src = "";
@@ -348,7 +468,7 @@ function show(){
     who = "대제학"; src = "img/char_priest.webp";
     cur.R = {c:"옳다"}; cur.L = {c:"그르다"};
   } else if (cur.kind === "explain"){
-    card.classList.add("grammar");
+    card.classList.add("grammar", cur.right ? "ok" : "no");
     text = cur.text; who = "대제학"; src = "img/char_priest.webp";
     cur.R = {c:"알겠다"}; cur.L = {c:"알겠다"};
   } else if (cur.kind === "result"){
@@ -361,58 +481,87 @@ function show(){
     cur.R = {c:fill(c.R.c)}; cur.L = {c:fill(c.L.c)};
   }
   $("q").textContent = text;
+  $("q").classList.toggle("small", text.length > 90);
   $("who").textContent = who;
   if (src){ img.src = src; img.style.display = ""; } else img.style.display = "none";
   card.setAttribute("aria-label", `${who} 카드. 오른쪽: ${cur.R.c||"넘기기"}, 왼쪽: ${cur.L.c||"넘기기"}`);
-  drawBar();
+  drawBar(); tutorial();
 }
+/* 기울이면 움직일 수치 위에 점 — 크기만 보여 준다 (원작과 같음) */
 function preview(side){
-  for (const s of STATS) $("st-"+s.v).querySelector(".dot").className = "dot";
-  if (!side || cur.kind !== "story") {
-    if (side && cur.kind === "grammar") $("st-spiritual").querySelector(".dot").className = "dot on big";
+  for (const s of STATS){ const el = $("st-"+s.v); el.classList.remove("hot"); el.querySelector(".dot").className = "dot"; }
+  if (!side || !cur) return;
+  const mark = (v, n) => {
+    if (!n) return;
+    const el = $("st-"+v); el.classList.add("hot");
+    el.querySelector(".dot").className = "dot on" + (Math.abs(n) >= 15 ? " big" : "");
+  };
+  if (cur.kind === "grammar"){
+    if (cur.eff.rescue) mark(cur.eff.rescue, 10);
+    else for (const [k,n] of Object.entries(cur.eff.s)) mark(KEY_OF[k], n);
     return;
   }
-  const eff = (side === "R" ? cur.card.R : cur.card.L).s || {};
-  for (const [k,val] of Object.entries(eff)){
-    const v = KEY_OF[k]; if (!v) continue;
-    const p = String(val);
-    if (p.includes("?")) continue;
-    const n = Math.abs(parseInt(p,10)||0);
-    if (!n) continue;
-    $("st-"+v).querySelector(".dot").className = "dot on" + (n >= 15 ? " big" : "");
+  if (cur.kind !== "story") return;
+  for (const [k,val] of Object.entries((side === "R" ? cur.card.R : cur.card.L).s || {})){
+    const p = String(val); if (p.includes("?") || !KEY_OF[k]) continue;
+    mark(KEY_OF[k], parseInt(p,10) || 0);
   }
 }
 
-/* ---------- 고르기 ---------- */
+/* ================= 고르기 ================= */
 function choose(side){
-  preview(null);
+  preview(null); hideTut();
   const prev = {...S.st};
-  if (cur.kind === "grammar"){
-    const right = (side === "R") === cur.isO;
-    S.st.spiritual += right ? 10 : -10;
-    S.year++; S.age++;
-    const fix = cur.isO ? `옳은 문장: ${cur.g.o}` : `바르게 고치면: ${cur.g.e}`;
-    cur = {kind:"explain", text:(right ? "맞히셨사옵니다!\n" : "아니옵니다, 전하.\n") + fix};
-    finishTurn(prev); return;
-  }
-  if (cur.kind === "explain" || cur.kind === "result"){ cur = null; finishTurn(prev); return; }
+  if (cur.kind === "grammar") return chooseGrammar(side, prev);
+  if (cur.kind === "explain" || cur.kind === "result"){ cur = null; return finishTurn(prev); }
   const c = cur.card, opt = side === "R" ? c.R : c.L;
   if ((c.char||"").startsWith("end")){ cur = {kind:"death", endCard:c}; return finishTurn(prev); }
-  // 수치
   for (const [k,val] of Object.entries(opt.s || {})){
-    const v = KEY_OF[k]; if (!v) continue;
-    if (lockedStat(v)) continue;
+    const v = KEY_OF[k]; if (!v || lockedStat(v)) continue;
     S.st[v] += parseVal(val).n;
   }
   run(opt.cmd, c);
-  // 다시 나오기까지
   const w = c.wait;
   S.seen[c.id] = w === "del" ? "del" : w === "reign" ? "reign" : S.year + (Number(w) || 20);
-  S.year++; S.age++;
+  S.year++; S.age++; S.since++;
+  bump("cards", 1);
   yearlyEffects();
   const res = fill(opt.r);
   cur = res ? {kind:"result", text:res, who:$("who").textContent, src:card.querySelector("img").getAttribute("src")} : null;
   finishTurn(prev);
+}
+function chooseGrammar(side, prev){
+  const right = (side === "R") === cur.isO, g = cur.g, eff = cur.eff;
+  const sign = right ? 1 : -1;
+  if (eff.rescue){
+    const v = eff.rescue, d = S.st[v] >= 50 ? -1 : 1;     // 50 쪽 방향
+    const amt = right ? Math.min(10, Math.abs(S.st[v]-50)) : 10;
+    S.st[v] += right ? d*amt : -d*amt;
+  } else {
+    for (const [k,n] of Object.entries(eff.s)) if (!lockedStat(KEY_OF[k])) S.st[KEY_OF[k]] += sign*n;
+  }
+  S.year++; S.age++;
+  S.rg.all++; if (right) S.rg.right++;
+  bump("cards", 1); bump("gAll", 1);
+  if (right){
+    bump("gRight", 1); META.unit[g.u] = (META.unit[g.u]||0) + 1;
+    META.streak = (META.streak||0) + 1; maxOf("gStreak", META.streak);
+    vibe("right");
+  } else { META.streak = 0; vibe("wrong"); shake(); }
+  const fix = cur.isO ? `옳은 문장: ${g.o}` : `바르게 고치면: ${g.e}`;
+  cur = {kind:"explain", right, text:(right ? "맞히셨사옵니다!\n" : "아니옵니다, 전하.\n") + fix + "\n" + changeLine(prev)};
+  finishTurn(prev);
+}
+function changeLine(prev){
+  const up = [], down = [];
+  for (const s of STATS){
+    const a = prev[s.v], b = Math.max(0, Math.min(100, S.st[s.v]));
+    if (b > a) up.push(s.k); else if (b < a) down.push(s.k);
+  }
+  const p = [];
+  if (up.length) p.push(fixJosa(up.join("·") + "이(가) 올랐사옵니다"));
+  if (down.length) p.push(fixJosa(down.join("·") + "이(가) 줄었사옵니다"));
+  return p.length ? "(" + p.join(" / ") + ")" : "";
 }
 function lockedStat(v){
   for (const tag of Object.keys(S.effects)){
@@ -423,7 +572,7 @@ function lockedStat(v){
 }
 function yearlyEffects(){
   for (const tag of Object.keys(S.effects)){
-    if (!S.vars[tag]) { delete S.effects[tag]; continue; }
+    if (!S.vars[tag]){ delete S.effects[tag]; continue; }
     const e = EFFECT_BY_TAG.get(tag);
     for (const [k,val] of Object.entries(e.yearly||{})){
       const m = String(val).match(/^(-?[\d.]*\d)\*$/);
@@ -433,39 +582,53 @@ function yearlyEffects(){
   }
 }
 function finishTurn(prev){
-  for (const s of STATS) S.st[s.v] = Math.max(0, Math.min(100, Math.round(S.st[s.v])));
+  let big = 0;
+  for (const s of STATS){
+    S.st[s.v] = Math.max(0, Math.min(100, Math.round(S.st[s.v])));
+    big = Math.max(big, Math.abs(S.st[s.v] - prev[s.v]));
+  }
   drawStats(prev);
+  if (big >= 10 && !(cur && cur.kind === "explain")){ vibe("big"); shake(); }
+  else if (big > 0) vibe("swipe");
+  maxOf("reignMax", S.age); maxOf("yearMax", S.year);
   if (!cur) cur = nextCard();
+  checkAch();
   if (cur.kind === "death") return die(cur.endCard);
-  save(); show();
+  save(); saveMeta(); show();
 }
 
-/* ---------- 죽음과 즉위 ---------- */
-function deathName(endCard){
-  const reign = S.age;
+/* ================= 죽음과 즉위 ================= */
+function deathName(){
   if (S.dynasty === 1) return "건조";
-  if (reign < 3) return "촉종";
-  if (reign >= 60) return "수종";
+  if (S.age < 3) return "촉종";
+  if (S.age >= 60) return "수종";
   for (const s of STATS){
     if (S.st[s.v] <= 0) return DEATH_NAME[s.v][0];
     if (S.st[s.v] >= 100) return DEATH_NAME[s.v][1];
   }
   return PLAIN_NAMES[Math.floor(Math.random()*PLAIN_NAMES.length)];
 }
-function die(endCard){
-  const name = deathName(endCard);
+function die(){
+  const name = deathName();
   S.kings.push({n:S.dynasty, name, from:S.reignStart, to:S.year});
+  bump("reigns", 1);
+  if (S.rg.all >= 10 && S.rg.right === S.rg.all) META.perfectReign = 1;
+  checkAch();
   $("dName").textContent = `해동 제${S.dynasty}대 ${name}`;
-  $("dInfo").textContent = `재위 ${S.age}년 (해동 ${S.reignStart}년 ~ ${S.year}년)`;
-  $("death").classList.add("on"); $("btnNext").focus();
-  S.dynasty++; newReign(); save();
+  $("dInfo").textContent = `재위 ${S.age}년 (해동 ${S.reignStart}년 ~ ${S.year}년)\n문법 문답 ${S.rg.all}번 가운데 ${S.rg.right}번 맞힘`;
+  $("dInfo").style.whiteSpace = "pre-line";
+  $("flash").classList.remove("on"); void $("flash").offsetWidth; $("flash").classList.add("on");
+  vibe("death");
+  S.dynasty++; newReign(); save(); saveMeta();
+  setTimeout(() => { $("death").classList.add("on"); $("btnNext").focus(); }, 450);
 }
 $("btnNext").onclick = () => { $("death").classList.remove("on"); drawStats(); cur = nextCard(); show(); card.focus(); };
+$("btnHome").onclick = () => { $("death").classList.remove("on"); cur = null; openTitle(); };
 
-/* ---------- 끌기 ---------- */
-let drag = null;
+/* ================= 끌기 ================= */
+let drag = null, busy = false;
 card.addEventListener("pointerdown", e => {
-  if (!cur) return;
+  if (!cur || busy || cur.kind === "death") return;
   drag = {x:e.clientX, dx:0}; card.setPointerCapture(e.pointerId); card.classList.add("drag");
 });
 card.addEventListener("pointermove", e => {
@@ -486,18 +649,17 @@ function endDrag(){
   else { card.style.transform = ""; choice.style.opacity = 0; preview(null); }
 }
 card.addEventListener("pointerup", endDrag);
-card.addEventListener("dragstart", e => e.preventDefault());
 card.addEventListener("pointercancel", endDrag);
-let busy = false;
+card.addEventListener("dragstart", e => e.preventDefault());
 function fly(side){
   if (busy) return; busy = true;
-  card.classList.add("fly");
+  card.classList.remove("enter"); card.classList.add("fly");
   card.style.transform = `translateX(${side==="R"?"":"-"}150%) rotate(${side==="R"?"":"-"}25deg)`;
   card.style.opacity = 0;
   setTimeout(() => { busy = false; choose(side); }, 280);
 }
 document.addEventListener("keydown", e => {
-  if ($("title").classList.contains("on") || $("death").classList.contains("on") || !cur) return;
+  if (document.querySelector(".screen.on,.veil.on") || !cur || cur.kind === "death") return;
   if (e.key === "ArrowRight" || e.key === "ArrowLeft"){
     e.preventDefault();
     const side = e.key === "ArrowRight" ? "R" : "L";
@@ -507,24 +669,253 @@ document.addEventListener("keydown", e => {
   }
 });
 
-/* ---------- 시작 화면 ---------- */
-$("units").innerHTML = GRAMMAR_UNITS.map((u,i) =>
-  `<label><input type="checkbox" value="${u}" checked> ${u}</label>`).join("");
-const saved = load();
-if (saved && saved.st) $("btnCont").hidden = false;
+/* ================= 처음 안내 ================= */
+let tutOn = false;
+function tutorial(){
+  let t = "";
+  if (cur.kind === "story" && S.age === 0 && (META.tutKings||0) < 3 && META.tutLastDyn !== S.dynasty){
+    META.tutKings = (META.tutKings||0) + 1; META.tutLastDyn = S.dynasty;
+    t = "카드를 왼쪽이나 오른쪽으로 밀어 고르시옵소서.\n살짝만 기울이면 무엇을 고르는지, 어느 수치가 움직이는지 보이옵니다.";
+  } else if (cur.kind === "grammar" && (META.tutGram||0) < 3){
+    META.tutGram = (META.tutGram||0) + 1;
+    t = "문법 문답이옵니다.\n옳은 문장이면 오른쪽, 그른 문장이면 왼쪽으로 미시옵소서.";
+  }
+  if (!t) return;
+  $("tutText").textContent = t; $("tutText").style.whiteSpace = "pre-line";
+  $("tut").classList.add("on"); tutOn = true; saveMeta();
+}
+function hideTut(){ if (tutOn){ $("tut").classList.remove("on"); tutOn = false; } }
+card.addEventListener("pointerdown", hideTut);
+
+/* ================= 과제 세기 ================= */
+const pad = n => String(n).padStart(2,"0");
+function dayKey(d = new Date()){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function weekKey(d = new Date()){
+  const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay()+6)%7));   // 월요일
+  return dayKey(x);
+}
+function box(){
+  const B = META.mis = META.mis || {};
+  const dk = dayKey(), wk = weekKey();
+  if (B.day !== dk){ B.day = dk; B.d = {}; B.dDone = []; }
+  if (B.week !== wk){ B.week = wk; B.w = {}; B.wDone = []; B.wDays = []; B.wAll = 0; }
+  if (!B.wDays.includes(dk)){ B.wDays.push(dk); B.w.days = B.wDays.length; }
+  return B;
+}
+function bump(k, n){
+  META.tot[k] = (META.tot[k]||0) + n;
+  const B = box(); B.d[k] = (B.d[k]||0) + n; B.w[k] = (B.w[k]||0) + n;
+  checkMis();
+}
+function maxOf(k, v){
+  META.tot[k] = Math.max(META.tot[k]||0, v);
+  const B = box(); B.d[k] = Math.max(B.d[k]||0, v); B.w[k] = Math.max(B.w[k]||0, v);
+  checkMis();
+}
+
+/* ================= 오늘·이번 주 과제 ================= */
+const MK = (id, hard, name, key, goal) => ({id, hard, name, key, goal});
+const DAILY = [
+  MK("d01","easy","게임 한 번 하기","plays",1),
+  MK("d02","easy","카드 30장 넘기기","cards",30),
+  MK("d03","easy","문법 문답 5번 맞히기","gRight",5),
+  MK("d04","easy","왕 한 명의 일생 마치기","reigns",1),
+  MK("d05","easy","문법 문답 연속 3번 맞히기","gStreak",3),
+  MK("d06","easy","한 왕이 10년 넘게 다스리기","reignMax",11),
+  MK("d07","mid","카드 80장 넘기기","cards",80),
+  MK("d08","mid","문법 문답 10번 맞히기","gRight",10),
+  MK("d09","mid","문법 문답 15번 맞히기","gRight",15),
+  MK("d10","mid","문법 문답 연속 5번 맞히기","gStreak",5),
+  MK("d11","mid","왕 세 명 거치기","reigns",3),
+  MK("d12","mid","한 왕이 20년 넘게 다스리기","reignMax",21),
+  MK("d13","mid","문법 문답 20번 풀기","gAll",20),
+  MK("d14","mid","카드 150장 넘기기","cards",150),
+  MK("d15","mid","게임 두 번 하기","plays",2),
+];
+const WEEKLY = [
+  MK("w01","easy","세 날에 걸쳐 게임하기","days",3),
+  MK("w02","easy","문법 문답 30번 맞히기","gRight",30),
+  MK("w03","easy","왕 다섯 명 거치기","reigns",5),
+  MK("w04","easy","카드 300장 넘기기","cards",300),
+  MK("w05","easy","오늘의 과제 3개 끝내기","misDone",3),
+  MK("w06","easy","문법 문답 연속 7번 맞히기","gStreak",7),
+  MK("w07","mid","다섯 날에 걸쳐 게임하기","days",5),
+  MK("w08","mid","문법 문답 60번 맞히기","gRight",60),
+  MK("w09","mid","문법 문답 100번 맞히기","gRight",100),
+  MK("w10","mid","왕 열 명 거치기","reigns",10),
+  MK("w11","mid","카드 700장 넘기기","cards",700),
+  MK("w12","mid","오늘의 과제 8개 끝내기","misDone",8),
+  MK("w13","mid","한 왕이 40년 넘게 다스리기","reignMax",41),
+  MK("w14","mid","문법 문답 연속 10번 맞히기","gStreak",10),
+  MK("w15","mid","도전과제 2개 열기","achOpen",2),
+  MK("w16","mid","해동 1000년 넘기기","yearMax",1001),
+];
+function seed(str){
+  let h = 2166136261;
+  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return () => { h ^= h<<13; h >>>= 0; h ^= h>>17; h ^= h<<5; h >>>= 0; return h/4294967296; };
+}
+const fam = k => k === "gRight" || k === "gAll" ? "g" : k;
+function pickMis(pool, key, nEasy, nAll){
+  const rnd = seed(key), used = new Set(), out = [];
+  const take = (list, n) => {
+    const a = list.slice(); let got = 0;
+    while (got < n && a.length){
+      const m = a.splice(Math.floor(rnd()*a.length),1)[0];
+      if (used.has(fam(m.key))) continue;
+      used.add(fam(m.key)); out.push(m); got++;
+    }
+  };
+  take(pool.filter(m => m.hard === "easy"), nEasy);
+  take(pool.filter(m => m.hard === "mid"), nAll - nEasy);
+  return out;
+}
+const misToday = () => pickMis(DAILY, "d"+box().day, 1, 3);
+const misWeek  = () => pickMis(WEEKLY, "w"+box().week, 2, 6);
+function misNow(m, week){ const B = box(); return (week ? B.w : B.d)[m.key] || 0; }
+let checkingMis = false;
+function checkMis(){
+  if (checkingMis) return; checkingMis = true;
+  try{
+    const B = box();
+    for (const m of misToday()) if (!B.dDone.includes(m.id) && misNow(m,0) >= m.goal){
+      B.dDone.push(m.id); toast("오늘의 과제 달성 · " + m.name); vibe("ach");
+      B.w.misDone = (B.w.misDone||0) + 1; META.tot.misDone = (META.tot.misDone||0) + 1;
+    }
+    for (const m of misWeek()) if (!B.wDone.includes(m.id) && misNow(m,1) >= m.goal){
+      B.wDone.push(m.id); toast("이번 주 과제 달성 · " + m.name); vibe("ach");
+    }
+    if (!B.wAll && B.wDone.length >= 6){ B.wAll = 1; toast("이번 주 과제를 모두 이루었사옵니다!"); }
+  } finally { checkingMis = false; }
+}
+function renderMis(){
+  const L = $("misList"); L.innerHTML = "";
+  const B = box();
+  const sect = (title, list, week, doneArr) => {
+    const h = document.createElement("div"); h.className = "head";
+    h.innerHTML = `<span>${title}</span><span>${doneArr.length} / ${list.length}</span>`; L.appendChild(h);
+    for (const m of list){
+      const now = Math.min(misNow(m,week), m.goal), done = doneArr.includes(m.id);
+      const d = document.createElement("div"); d.className = "item" + (done ? " done" : "");
+      d.innerHTML = `<b>${m.name}</b><div class="d">${now} / ${m.goal}</div><div class="bar2"><i style="width:${now/m.goal*100}%"></i></div>`;
+      L.appendChild(d);
+    }
+  };
+  sect("오늘", misToday(), 0, B.dDone);
+  sect("이번 주", misWeek(), 1, B.wDone);
+  const d = document.createElement("div"); d.className = "item" + (B.wAll ? " done" : "");
+  d.innerHTML = `<b>이번 주 과제 여섯 개를 모두 이루기</b><div class="d">${B.wAll ? "이루었사옵니다" : "아직이옵니다"}</div>`;
+  L.appendChild(d);
+}
+
+/* ================= 도전과제 ================= */
+const UNIT_ACH = GRAMMAR_UNITS.map((u,i) => ({id:"u"+i, title:`${u}의 왕`, desc:`${u} 문답 30번 맞히기`, f:()=>(META.unit[u]||0) >= 30}));
+const G_ACH = [
+  {id:"g01", title:"첫 문답", desc:"문법 문답을 처음 맞히기", f:()=>(META.tot.gRight||0) >= 1},
+  {id:"g02", title:"글을 아는 왕", desc:"문법 문답 10번 맞히기", f:()=>(META.tot.gRight||0) >= 10},
+  {id:"g03", title:"글을 즐기는 왕", desc:"문법 문답 50번 맞히기", f:()=>(META.tot.gRight||0) >= 50},
+  {id:"g04", title:"집현전의 벗", desc:"문법 문답 100번 맞히기", f:()=>(META.tot.gRight||0) >= 100},
+  {id:"g05", title:"대제학의 스승", desc:"문법 문답 300번 맞히기", f:()=>(META.tot.gRight||0) >= 300},
+  {id:"g06", title:"훈민의 왕", desc:"문법 문답 1000번 맞히기", f:()=>(META.tot.gRight||0) >= 1000},
+  {id:"g07", title:"막힘없는 왕", desc:"문법 문답 연속 10번 맞히기", f:()=>(META.tot.gStreak||0) >= 10},
+  {id:"g08", title:"한 치 어긋남 없는 왕", desc:"문법 문답 연속 20번 맞히기", f:()=>(META.tot.gStreak||0) >= 20},
+  {id:"g09", title:"바른말의 왕", desc:"한 왕의 재위 동안 문법 문답 10번 이상을 모두 맞히기", f:()=>!!META.perfectReign},
+  {id:"g10", title:"문답의 왕", desc:"문법 문답 500번 풀기", f:()=>(META.tot.gAll||0) >= 500},
+  ...UNIT_ACH,
+];
+const O_ACH = GOALS.filter(g => !g.hold).map(g => ({id:"o_"+g.key, title:g.title, desc:g.desc, pre:g.pre ? "o_"+g.pre : "", cond:g.cond}));
+const ACH = [...G_ACH, ...O_ACH];
+function achOk(a){
+  if (a.f) return a.f();
+  if (!S) return false;
+  if (a.pre && !META.ach[a.pre]) return false;
+  const c = a.cond.trim();
+  if (c.startsWith(">_")) return !!META.labels[c.slice(1)] || !!META.labels[c.slice(2)];
+  return test(c);
+}
+function checkAch(){
+  for (const a of ACH){
+    if (META.ach[a.id]) continue;
+    let ok = false; try{ ok = achOk(a); }catch(e){}
+    if (ok){
+      META.ach[a.id] = dayKey(); toast("도전과제 달성 · " + a.title); vibe("ach");
+      bump("achOpen", 1);
+    }
+  }
+}
+function renderAch(){
+  const L = $("achList"); L.innerHTML = "";
+  const n = ACH.filter(a => META.ach[a.id]).length;
+  $("achSum").textContent = `${n} / ${ACH.length} 달성`;
+  for (const a of ACH){
+    const got = META.ach[a.id];
+    const d = document.createElement("div"); d.className = "item" + (got ? " done" : " lock");
+    d.innerHTML = `<b>${got ? a.title : "잠긴 칭호"}</b><div class="d">${a.desc}</div>`;
+    L.appendChild(d);
+  }
+}
+
+/* ================= 바탕화면에 두기 ================= */
+let instPrompt = null;
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true
+                        || location.search.indexOf("home=1") >= 0;
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); instPrompt = e; });
+addEventListener("appinstalled", () => { instPrompt = null; refreshInstall(); });
+function refreshInstall(){ $("btnInstall").hidden = isStandalone(); }
+function showInstall(){
+  if (instPrompt){ const p = instPrompt; instPrompt = null; p.prompt(); return; }
+  $("instBody").innerHTML = isIOS()
+    ? `<b>하나</b> · 화면 아래 가운데 <b style="color:#f3d891">공유(⬆)</b> 단추를 누른다<br>
+       <b>둘</b> · 아래로 내려 「홈 화면에 추가」를 누른다<br>
+       <b>셋</b> · 오른쪽 위 「추가」를 누른다`
+    : `<b>하나</b> · 브라우저 메뉴 <b style="color:#f3d891">⋮</b> 또는 <b style="color:#f3d891">☰</b> 를 누른다<br>
+       <b>둘</b> · 「홈 화면에 추가」 또는 「앱 설치」를 누른다`;
+  openVeil("vInstall");
+}
+function maybeOfferInstall(){                   // 세 번째로 들어왔을 때 평생 한 번만
+  if (isStandalone() || META.instShown) return;
+  META.visits = (META.visits||0) + 1;
+  if (META.visits >= 3){ META.instShown = 1; setTimeout(showInstall, 900); }
+  saveMeta();
+}
+$("btnInstall").onclick = showInstall;
+if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* ================= 시작 화면 ================= */
+function openVeil(id){ $(id).classList.add("on"); $(id).querySelector("[data-close]").focus(); }
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => { b.closest(".veil").classList.remove("on"); refreshTitle(); });
+$("btnAch").onclick = () => { renderAch(); openVeil("vAch"); };
+$("btnMis").onclick = () => { renderMis(); openVeil("vMis"); };
+$("vibeOff").checked = !!META.vibeOff;
+$("vibeOff").onchange = e => { META.vibeOff = e.target.checked; saveMeta(); };
+$("units").innerHTML = GRAMMAR_UNITS.map(u => `<label><input type="checkbox" value="${u}" checked> ${u}</label>`).join("");
+function refreshTitle(){
+  const s = load();
+  $("btnCont").disabled = !(s && s.st);
+  refreshInstall();
+}
+function openTitle(){ refreshTitle(); $("title").classList.add("on"); $("btnNew").focus(); }
 $("btnNew").onclick = () => {
   const units = [...document.querySelectorAll("#units input:checked")].map(i => i.value);
   if (!units.length){ $("msg").textContent = "단원을 하나 이상 골라 주세요."; return; }
+  $("msg").textContent = "";
   newGame(units); start();
 };
-$("btnCont").onclick = () => { S = load(); if (!S){ $("msg").textContent = "저장된 기록을 불러오지 못했습니다."; return; } start(); };
+$("btnCont").onclick = () => {
+  const s = load();
+  if (!s || !s.st){ $("msg").textContent = "저장된 기록을 불러오지 못했습니다."; return; }
+  S = s; S.rg = S.rg || {right:0,all:0}; S.since = S.since || 0; start();
+};
 function start(){
   $("title").classList.remove("on");
-  drawStats(); cur = nextCard(); show(); card.focus();
+  bump("plays", 1);
+  drawStats(); cur = nextCard(); show(); save(); saveMeta(); card.focus();
 }
 buildStats();
-$("title").classList.add("on");
-window.__debug = { get S(){return S;}, skipped, choose, get cur(){return cur;} };
+openTitle();
+maybeOfferInstall();
+window.__debug = { get S(){return S;}, skipped, get cur(){return cur;}, get META(){return META;} };
 </script>
 </body>
 </html>

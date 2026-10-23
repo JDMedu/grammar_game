@@ -1,0 +1,18 @@
+{
+  "name": "문법의 나라",
+  "short_name": "문법의 나라",
+  "description": "해동 왕조를 다스리며 국어 문법을 익히는 카드 게임",
+  "lang": "ko",
+  "start_url": "./?home=1",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2f3557",
+  "theme_color": "#2f3557",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-192-mask.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "icon-512-mask.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
