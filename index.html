@@ -110,6 +110,19 @@ body{background:#1a1714;color:var(--ink);font-family:"Noto Serif KR",serif;overf
 #panel legend{padding:0 6px;font-weight:700}
 #panel label{display:flex;gap:6px;align-items:center}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.row3 .btn{padding:10px 4px;font-size:16px}
+/* 공부 모드 */
+#sstats,#sbar{display:none}
+#app.study #stats,#app.study #bar{display:none}
+#app.study #sstats{display:flex;justify-content:space-around;align-items:center;padding:14px 8px;background:var(--navy);
+  border-bottom:3px solid var(--gold);color:var(--paper);font-size:16px;font-weight:700}
+#sstats b{display:block;font-family:"Song Myung",serif;font-size:26px;font-weight:400;color:#f3d891}
+#app.study #sbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 14px calc(8px + env(safe-area-inset-bottom));
+  background:var(--navy);color:var(--paper);border-top:3px solid var(--gold);font-size:14px}
+#sbar .btn{padding:6px 16px;font-size:15px}
+#vStudy .sum{font-size:18px;line-height:1.9}
+#vStudy .sum b{color:#f3d891}
 .btn{position:relative;font:inherit;font-size:17px;font-weight:700;padding:10px 14px;border-radius:24px;border:2px solid var(--gold);
   background:var(--navy);color:var(--paper);cursor:pointer}
 .btn.ghost{background:var(--paper);color:var(--ink)}
@@ -138,6 +151,9 @@ body{background:#1a1714;color:var(--ink);font-family:"Noto Serif KR",serif;overf
 <body>
 <main id="app" aria-label="문법의 나라">
   <div id="stats" role="group" aria-label="나라 형편"></div>
+  <div id="sstats" role="status" aria-label="공부 성적">
+    <div>푼 문제<b id="sN">0</b></div><div>맞힘<b id="sR">0</b></div><div>연속<b id="sS">0</b></div>
+  </div>
   <div id="q" aria-live="polite"></div>
   <div id="stage">
     <div id="cardwrap">
@@ -147,6 +163,7 @@ body{background:#1a1714;color:var(--ink);font-family:"Noto Serif KR",serif;overf
     <div id="who"></div>
   </div>
   <div id="bar"><span><b id="king"></b></span><span id="years"></span></div>
+  <div id="sbar"><span id="sUnits"></span><button class="btn ghost" id="btnStop">그만하기</button></div>
   <p id="help" class="sr">카드를 왼쪽이나 오른쪽으로 밀어 고릅니다. 키보드 왼쪽·오른쪽 화살표로도 고를 수 있습니다.</p>
 
   <div id="tut" aria-live="polite"><div class="box"><div id="tutText"></div><span class="hand" aria-hidden="true">👆</span></div></div>
@@ -158,9 +175,10 @@ body{background:#1a1714;color:var(--ink);font-family:"Noto Serif KR",serif;overf
     <div id="panel">
       <fieldset><legend>문법 단원</legend><div id="units" style="display:contents"></div></fieldset>
       <div id="msg" role="alert"></div>
-      <div class="row">
+      <div class="row3">
         <button class="btn" id="btnNew">새로 시작</button>
         <button class="btn" id="btnCont" disabled>이어 하기</button>
+        <button class="btn" id="btnStudy">공부 모드</button>
       </div>
       <div class="row">
         <button class="btn ghost" id="btnAch">도전과제</button>
@@ -186,6 +204,13 @@ body{background:#1a1714;color:var(--ink);font-family:"Noto Serif KR",serif;overf
     <h2>과제</h2>
     <div class="list" id="misList"></div>
     <button class="btn" data-close>닫기</button>
+  </section>
+  <section id="vStudy" class="veil" aria-label="공부 결과">
+    <h2>공부 결과</h2>
+    <div class="sum" id="studySum"></div>
+    <div class="head" style="width:100%;max-width:400px"><span>틀린 문제</span><span id="studyWN"></span></div>
+    <div class="list" id="studyList"></div>
+    <button class="btn" id="btnStudyEnd">시작 화면으로</button>
   </section>
   <section id="vInstall" class="veil" aria-label="바탕화면에 두기" style="justify-content:center">
     <h2>바탕화면에 두기</h2>
@@ -447,6 +472,7 @@ function drawStats(prev){
   }
 }
 function drawBar(){
+  if (MODE === "study") return;
   $("king").textContent = `해동 제${S.dynasty}대 왕`;
   $("years").textContent = `재위 ${S.age}년 · 해동 ${S.year}년`;
   $("app").classList.toggle("dungeon", !!S.vars.intheDungeon || !!(cur && cur.card && /^dungeon/.test(cur.card.char||"")));
@@ -509,6 +535,7 @@ function preview(side){
     const el = $("st-"+v); el.classList.add("hot");
     el.querySelector(".dot").className = "dot on" + (Math.abs(n) >= 15 ? " big" : "");
   };
+  if (MODE === "study") return;
   if (cur.kind === "grammar"){
     if (cur.eff.rescue) mark(cur.eff.rescue, 10);
     else for (const [k,n] of Object.entries(cur.eff.s)) mark(KEY_OF[k], n);
@@ -524,6 +551,7 @@ function preview(side){
 /* ================= 고르기 ================= */
 function choose(side){
   preview(null); hideTut();
+  if (MODE === "study") return chooseStudy(side);
   const prev = {...S.st};
   if (cur.kind === "grammar") return chooseGrammar(side, prev);
   if (cur.kind === "explain" || cur.kind === "result"){ cur = null; return finishTurn(prev); }
@@ -929,10 +957,74 @@ $("btnCont").onclick = () => {
   S = s; S.rg = S.rg || {right:0,all:0}; S.since = S.since || 0; start();
 };
 function start(){
+  MODE = "story"; $("app").classList.remove("study");
   $("title").classList.remove("on");
   bump("plays", 1);
   drawStats(); cur = nextCard(); show(); save(); saveMeta(); card.focus();
 }
+/* ================= 공부 모드 =================
+   수치·이야기·저장 없이 문법 문답만. 도전과제와 과제에도 세지 않는다. */
+let MODE = "story", ST = null;
+const shuffle = a => { for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+$("btnStudy").onclick = () => {
+  const units = [...document.querySelectorAll("#units input:checked")].map(i => i.value);
+  if (!units.length){ $("msg").textContent = "단원을 하나 이상 골라 주세요."; return; }
+  $("msg").textContent = "";
+  const pool = GRAMMAR.filter(g => units.includes(g.u));
+  ST = {units, pool, deck:shuffle(pool.slice()), n:0, right:0, streak:0, best:0, wrong:[], retry:[]};
+  MODE = "study"; $("app").classList.add("study"); $("app").classList.remove("dungeon");
+  $("sUnits").textContent = "공부 모드 · " + (units.length === GRAMMAR_UNITS.length ? "모든 단원" : units.join(", "));
+  $("title").classList.remove("on");
+  drawStudy(); cur = nextStudy(); show(); card.focus();
+};
+function nextStudy(){
+  // 틀린 문제는 5문제 뒤에 반반 확률로 다시 낸다
+  const due = ST.retry.findIndex(r => r.at <= ST.n);
+  if (due >= 0){
+    const r = ST.retry.splice(due,1)[0];
+    if (Math.random() < .5) return {kind:"grammar", g:r.g, isO:r.isO};
+  }
+  if (!ST.deck.length) ST.deck = shuffle(ST.pool.slice());   // 다 풀면 다시 섞는다
+  return {kind:"grammar", g:ST.deck.pop(), isO: Math.random() < .5};
+}
+function drawStudy(){ $("sN").textContent = ST.n; $("sR").textContent = ST.right; $("sS").textContent = ST.streak; }
+function chooseStudy(side){
+  if (cur.kind === "explain"){ cur = nextStudy(); return show(); }
+  const right = (side === "R") === cur.isO, g = cur.g;
+  ST.n++;
+  if (right){
+    ST.right++; ST.streak++; ST.best = Math.max(ST.best, ST.streak);
+    vibe("right");
+    const f = $("flash"); f.classList.remove("on","gold"); void f.offsetWidth; f.classList.add("on","gold");
+    drawStudy(); cur = nextStudy(); return show();
+  }
+  ST.streak = 0; vibe("wrong"); shake();
+  if (!ST.wrong.some(w => w.g === g && w.isO === cur.isO)) ST.wrong.push({g, isO:cur.isO});
+  ST.retry.push({g, isO:cur.isO, at:ST.n + 5});
+  drawStudy();
+  cur = {kind:"explain", right:false, text:"아니옵니다.\n바르게 고치면: " + (cur.isO ? g.o : g.e)};
+  show();
+}
+$("btnStop").onclick = () => {
+  const rate = ST.n ? Math.round(ST.right / ST.n * 100) : 0;
+  $("studySum").innerHTML = `푼 문제 <b>${ST.n}</b> · 맞힘 <b>${ST.right}</b> · 정답률 <b>${rate}%</b><br>가장 길게 이어 맞힌 수 <b>${ST.best}</b>`;
+  $("studyWN").textContent = ST.wrong.length + "개";
+  const L = $("studyList"); L.innerHTML = "";
+  if (!ST.wrong.length){ const d = document.createElement("div"); d.className = "item"; d.textContent = "틀린 문제가 없사옵니다."; L.appendChild(d); }
+  for (const w of ST.wrong){
+    const d = document.createElement("div"); d.className = "item";
+    const b = document.createElement("b"); b.textContent = `「${w.isO ? w.g.o : w.g.x}」 → ${w.isO ? "옳은 문장" : "그른 문장"}`;
+    const e = document.createElement("div"); e.className = "d"; e.textContent = (w.isO ? "옳은 문장: " + w.g.o : "바르게 고치면: " + w.g.e) + ` (${w.g.u})`;
+    d.append(b, e); L.appendChild(d);
+  }
+  $("vStudy").classList.add("on"); $("btnStudyEnd").focus();
+};
+$("btnStudyEnd").onclick = () => {
+  $("vStudy").classList.remove("on");
+  MODE = "story"; ST = null; cur = null; $("app").classList.remove("study");
+  openTitle();
+};
+
 buildStats();
 openTitle();
 maybeOfferInstall();
