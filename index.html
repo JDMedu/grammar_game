@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>문법의 나라</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&family=Noto+Serif+KR:wght@400;700&display=swap">
+<style>
+:root{
+  --ink:#2b2622; --paper:#efe4cf; --paper2:#e4d5b7; --gold:#c9a04a; --navy:#2f3557;
+  --red:#b5432f; --cel:#7fa393; --dim:#8a7c68;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--ink);color:var(--ink);font-family:"Noto Serif KR",serif;overflow:hidden;
+  display:flex;justify-content:center;user-select:none;-webkit-user-select:none;touch-action:none}
+#app{position:relative;width:100%;max-width:480px;height:100%;display:flex;flex-direction:column;
+  background:var(--paper) url(img/bg_hall.webp) center/cover;}
+#app.dungeon{background-image:url(img/bg_dungeon.webp)}
+#app::before{content:"";position:absolute;inset:0;background:rgba(239,228,207,.55);pointer-events:none}
+#app>*{position:relative}
+#app>.screen{position:absolute}
+
+/* 수치 */
+#stats{display:flex;justify-content:space-around;padding:10px 8px 8px;background:var(--navy);
+  border-bottom:3px solid var(--gold)}
+.stat{position:relative;width:56px;text-align:center}
+.icon{position:relative;width:48px;height:48px;margin:0 auto;border-radius:50%;overflow:hidden;
+  background:#555;border:2px solid var(--gold)}
+.icon img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) brightness(.45)}
+.icon .fill{position:absolute;inset:0;overflow:hidden;transition:clip-path .5s}
+.icon .fill img{filter:none}
+.stat .lbl{font-size:11px;color:var(--paper);margin-top:2px}
+.dot{position:absolute;top:-6px;left:50%;transform:translateX(-50%) scale(0);width:10px;height:10px;
+  border-radius:50%;background:var(--paper);transition:transform .15s}
+.dot.big{width:16px;height:16px;top:-9px}
+.dot.on{transform:translateX(-50%) scale(1)}
+.icon.up{animation:up .6s} .icon.down{animation:down .6s}
+@keyframes up{50%{box-shadow:0 0 0 5px #9fd18b}} @keyframes down{50%{box-shadow:0 0 0 5px #e06a52}}
+
+/* 대사 */
+#q{flex:0 0 auto;min-height:120px;display:flex;align-items:center;justify-content:center;
+  padding:14px 22px;text-align:center;font-size:17px;line-height:1.55;white-space:pre-line}
+
+/* 카드 */
+#stage{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0}
+#cardwrap{position:relative;width:min(72vw,300px);aspect-ratio:3/4;perspective:800px}
+.back{position:absolute;inset:0;border-radius:14px;background:url(img/card_back.webp) center/cover;
+  box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#card{position:absolute;inset:0;border-radius:14px;background:var(--navy);border:3px solid var(--gold);
+  box-shadow:0 8px 22px rgba(0,0,0,.4);overflow:hidden;touch-action:none;cursor:grab;
+  transition:transform .25s ease-out}
+#card.drag{transition:none;cursor:grabbing}
+#card.fly{transition:transform .3s ease-in,opacity .3s}
+#card::after{content:"";position:absolute;inset:6px;border:1px solid var(--gold);border-radius:9px;pointer-events:none}
+#card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;pointer-events:none;-webkit-user-drag:none}
+#card.end{background:#000}
+#card.end img{display:none}
+#card.grammar{border-color:#d9b25c;background:#6b3a2a}
+#choice{position:absolute;left:0;right:0;top:0;height:30%;display:flex;align-items:center;padding:0 18px;
+  background:rgba(43,38,34,.85);color:var(--paper);font-size:16px;font-weight:700;opacity:0;transition:opacity .1s}
+#choice.r{justify-content:flex-start;text-align:left} #choice.l{justify-content:flex-end;text-align:right}
+#who{margin-top:10px;font-family:"Song Myung",serif;font-size:20px;min-height:28px}
+
+/* 연표 */
+#bar{display:flex;justify-content:space-between;align-items:center;padding:8px 14px calc(8px + env(safe-area-inset-bottom));
+  background:var(--navy);color:var(--paper);border-top:3px solid var(--gold);font-size:14px}
+#bar b{font-family:"Song Myung",serif;font-size:17px;font-weight:400}
+
+/* 덮개 화면 */
+.screen{position:absolute;inset:0;z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:24px;gap:16px}
+.screen.on{display:flex}
+#title{background:var(--paper) url(img/bg_cover.webp) center/cover}
+#title h1{font-family:"Song Myung",serif;font-size:46px;font-weight:400;color:var(--ink);
+  text-shadow:0 0 12px var(--paper),0 0 4px var(--paper);margin-top:-30vh}
+#title fieldset{border:2px solid var(--gold);border-radius:10px;padding:10px 14px;background:rgba(239,228,207,.92);
+  display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;text-align:left;font-size:15px}
+#title legend{padding:0 6px;font-weight:700}
+#title label{display:flex;gap:6px;align-items:center}
+.btn{font:inherit;font-size:17px;padding:10px 26px;border-radius:24px;border:2px solid var(--gold);
+  background:var(--navy);color:var(--paper);cursor:pointer}
+.btn:focus-visible,input:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+#msg{color:var(--red);font-size:14px;min-height:20px;background:rgba(239,228,207,.9);border-radius:6px;padding:0 6px}
+#death{background:#000;color:var(--paper)}
+#death h2{font-family:"Song Myung",serif;font-size:34px;font-weight:400}
+#death p{line-height:1.7;max-width:320px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<main id="app" aria-label="문법의 나라">
+  <div id="stats" role="group" aria-label="나라 형편"></div>
+  <div id="q" aria-live="polite"></div>
+  <div id="stage">
+    <div id="cardwrap">
+      <div class="back"></div>
+      <div id="card" tabindex="0" aria-describedby="help"><img alt="" draggable="false"><div id="choice"></div></div>
+    </div>
+    <div id="who"></div>
+  </div>
+  <div id="bar"><span><b id="king"></b></span><span id="years"></span></div>
+  <p id="help" class="sr">카드를 왼쪽이나 오른쪽으로 밀어 고릅니다. 키보드 왼쪽·오른쪽 화살표로도 고를 수 있습니다.</p>
+
+  <section id="title" class="screen" aria-label="시작 화면">
+    <h1>문법의 나라</h1>
+    <fieldset><legend>문법 단원</legend><div id="units" style="display:contents"></div></fieldset>
+    <div id="msg" role="alert"></div>
+    <button class="btn" id="btnNew">새로 시작</button>
+    <button class="btn" id="btnCont" hidden>이어 하기</button>
+  </section>
+  <section id="death" class="screen" aria-live="assertive">
+    <h2 id="dName"></h2><p id="dInfo"></p>
+    <button class="btn" id="btnNext">다음 왕 즉위</button>
+  </section>
+</main>
+
+<script src="grammar.js"></script>
+<script src="dialogue.js"></script>
+<script>
+"use strict";
+/* ---------- 기본 자료 ---------- */
+const STATS = [ // 화면 이름, 원작 변수 이름, 아이콘
+  {k:"문법", v:"spiritual",  img:"icon_munbeop"},
+  {k:"민심", v:"demography", img:"icon_minsim"},
+  {k:"군사", v:"military",   img:"icon_gunsa"},
+  {k:"국고", v:"treasure",   img:"icon_gukgo"},
+];
+const NAMES = {diplomat:"사신",general:"대장군",priest:"대제학",jester:"광대",farmer:"농부",witch:"무녀",merchant:"보부상",
+  dog:"검은 삽살개",nobleman:"대감",doctor:"의원",homunculus:"항아리 속 신선",queen:"중전",monk:"유생",lady:"규수",
+  skeleton:"원귀",spy:"밀정",foreign_princess:"이웃 나라 공주",fortune_teller:"관상가",ghost:"선왕의 혼령",
+  executioner:"망나니",minstrel:"소리꾼",prophet:"떠돌이 도사",bird:"까치",black_bird:"까마귀",cat:"고양이",
+  parker:"고을 원님",courtesan:"떡 장인",barbare:"북방 족장",alien:"하늘 손님",painter:"화원",dragon:"이무기",
+  werewolf:"구미호",explorator:"표류한 이방인",nun:"훈장",prince:"세자",rival:"처남",viking:"바다 도적",
+  soldier:"병졸",anyone:"",senator:"그림자 정승",king:"왕",lover:"정인",dungeon:""};
+const DEATH_NAME = {spiritual:["난종","엄종"],military:["애종","위종"],demography:["기종","민종"],treasure:["빈종","부종"]};
+const PLAIN_NAMES = ["건종","율종","담종","찬종","운종","연종","보종","아종"];
+const START_YEAR = 603, GRAMMAR_EVERY = 4, SAVE_KEY = "munbeop-nara-v1";
+
+const CARDS = DIALOGUE.filter(c => !c.hold);
+for (const c of CARDS) c.name = (c.name || "").trim();
+const IDX = new Map(CARDS.map((c,i)=>[c.id,i]));
+const BY_NAME = new Map();
+for (const c of CARDS) if (c.name && c.name !== "_") {
+  if (!BY_NAME.has(c.name)) BY_NAME.set(c.name, []);
+  BY_NAME.get(c.name).push(c);
+}
+const DECK = CARDS.filter(c => !c.name.startsWith("_") && !(c.char||"").startsWith("end"));
+const EFFECT_BY_TAG = new Map(EFFECTS.filter(e=>!e.hold).map(e=>[e.tag,e]));
+const KEY_OF = Object.fromEntries(STATS.map(s=>[s.k,s.v]));
+
+/* ---------- 상태 ---------- */
+let S = null;          // 저장되는 게임 상태
+let cur = null;        // 지금 보이는 카드 {kind, card, ...}
+const skipped = new Set(); // 해석 못 한 기호 (개발용)
+
+function newGame(units){
+  S = {units, year:START_YEAR, dynasty:1, age:0, kingName:"", reignStart:START_YEAR,
+       st:{spiritual:50,military:50,demography:50,treasure:50},
+       vars:{}, seen:{}, queue:[], story:0, effects:{}, kings:[]};
+}
+function newReign(){
+  for (const k of Object.keys(S.vars)) if (!/_keep$/.test(k) && !/^has_/.test(k)) delete S.vars[k];
+  S.st = {spiritual:50,military:50,demography:50,treasure:50};
+  S.age = 0; S.reignStart = S.year; S.queue = []; S.effects = {};
+  for (const k of Object.keys(S.seen)) if (S.seen[k] === "reign") delete S.seen[k];
+}
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function load(){ try{ const t = localStorage.getItem(SAVE_KEY); return t ? JSON.parse(t) : null; }catch(e){ return null; } }
+
+/* ---------- 조건·명령 해석 ---------- */
+function getVar(name){
+  if (name in S.st) return S.st[name];
+  switch(name){
+    case "money": return S.st.treasure;
+    case "year": return S.year;
+    case "age": return S.age;
+    case "dynasty": return S.dynasty;
+    case "overall": return (S.st.spiritual+S.st.military+S.st.demography+S.st.treasure)/4;
+  }
+  const v = S.vars[name];
+  return v === undefined ? 0 : (v === true ? 1 : v);
+}
+function test(cond){
+  if (!cond) return true;
+  for (let t of cond.split(/\s+and\s+/)){
+    t = t.trim(); if (!t) continue;
+    let m = t.match(/^(!?)([A-Za-z_][\w]*)$/);
+    if (m){ const v = getVar(m[2]); if (m[1] ? v : !v) return false; continue; }
+    m = t.match(/^([A-Za-z_]\w*)\s*(<=|>=|<|>|=)\s*(-?[\d.]+)$/);
+    if (m){
+      const a = getVar(m[1]), b = Number(m[3]);
+      const ok = m[2]==="<"?a<b : m[2]===">"?a>b : m[2]==="<="?a<=b : m[2]===">="?a>=b : a===b;
+      if (!ok) return false; continue;
+    }
+    skipped.add(t); return false;
+  }
+  return true;
+}
+function run(cmd, card){
+  if (!cmd) return;
+  for (let t of cmd.split(/\s+and\s+/)){
+    t = t.trim(); if (!t) continue;
+    let m = t.match(/^(>+)(.*)$/);
+    if (m){ S.queue.push({after:m[1].length-1, from:card.id, label:m[2]}); continue; }
+    m = t.match(/^(add|del)_(\w+)$/);
+    if (m){ S.vars["has_"+m[2]] = m[1]==="add"; continue; }
+    m = t.match(/^!(\w+)$/);
+    if (m){ delete S.vars[m[1]]; continue; }
+    m = t.match(/^(\w+?)(\++|-+)$/);
+    if (m){ const n = m[2].length*(m[2][0]==="+"?1:-1); S.vars[m[1]] = (Number(S.vars[m[1]])||0)+n; continue; }
+    m = t.match(/^(\w+)$/);
+    if (m){ S.vars[m[1]] = true; if (EFFECT_BY_TAG.has(m[1])) S.effects[m[1]] = Number(EFFECT_BY_TAG.get(m[1]).dur)||-1; continue; }
+    skipped.add(t);
+  }
+}
+/* 수치 값: "10" "-10" "10?" "?20" "-20?30" */
+function parseVal(s){
+  s = String(s).trim();
+  let m = s.match(/^(-?\d+)\?(-?\d+)$/);
+  if (m){ const a=+m[1], b=+m[2]; return {n:Math.round(a+Math.random()*(b-a)), hide:true}; }
+  m = s.match(/^\?(-?\d+)$|^(-?\d+)\?$/);
+  if (m) return {n:+(m[1]??m[2]), hide:true};
+  if (/^-?\d+$/.test(s)) return {n:+s, hide:false};
+  skipped.add("값:"+s); return {n:0, hide:true};
+}
+
+/* ---------- 카드 뽑기 ---------- */
+function available(c){
+  const s = S.seen[c.id];
+  if (s === "del" || s === "reign") return false;
+  if (typeof s === "number" && S.year < s) return false;
+  return test(c.cond);
+}
+function pickWeighted(list){
+  const max = list.filter(c => c.weight === "max");
+  if (max.length) return max[Math.floor(Math.random()*max.length)];
+  const w = list.map(c => Number(c.weight) || 10);
+  let r = Math.random()*w.reduce((a,b)=>a+b,0);
+  for (let i=0;i<list.length;i++){ r -= w[i]; if (r <= 0) return list[i]; }
+  return list[list.length-1];
+}
+function resolveLabel(q){
+  if (!q.label){ const i = IDX.get(q.from); return CARDS[i+1] || null; }
+  const list = (BY_NAME.get(q.label.trim()) || []).filter(c => test(c.cond));
+  return list.length ? pickWeighted(list) : null;
+}
+function atBound(){ return STATS.some(s => S.st[s.v] <= 0 || S.st[s.v] >= 100); }
+function nextCard(){
+  // 1) 바로 이어지는 카드
+  for (const q of S.queue) q.after--;
+  const due = S.queue.findIndex(q => q.after < 0);
+  if (due >= 0){
+    const q = S.queue.splice(due,1)[0];
+    const c = resolveLabel(q);
+    if (c) return {kind:"story", card:c};
+    if (q.label && !BY_NAME.has(q.label.trim())) skipped.add("이름표:"+q.label);
+  }
+  // 2) 수치 끝 → 강제 카드 (조건에 그 수치 =0/=100 이 들어간 카드)
+  if (atBound()){
+    const forced = CARDS.filter(c => /(spiritual|military|demography|treasure)=(0|100)/.test(c.cond) && test(c.cond) && !c.name.startsWith("_") && !(c.char||"").startsWith("end"));
+    if (forced.length) return {kind:"story", card:pickWeighted(forced)};
+    return {kind:"death"};
+  }
+  // 3) 문법 카드
+  if (S.story >= GRAMMAR_EVERY && !S.queue.length){
+    const pool = GRAMMAR.filter(g => S.units.includes(g.u));
+    if (pool.length){
+      S.story = 0;
+      const g = pool[Math.floor(Math.random()*pool.length)];
+      return {kind:"grammar", g, isO: Math.random() < .5};
+    }
+  }
+  // 4) 일반 카드
+  const list = DECK.filter(available);
+  S.story++;
+  return {kind:"story", card: list.length ? pickWeighted(list) : DECK[Math.floor(Math.random()*DECK.length)]};
+}
+
+/* ---------- 글 다듬기 ---------- */
+function hasBatchim(ch){
+  const c = ch.charCodeAt(0);
+  if (c >= 0xAC00 && c <= 0xD7A3) return (c-0xAC00)%28 !== 0;
+  return /[136780lmnr]/i.test(ch);
+}
+function fixJosa(t){
+  return t.replace(/([가-힣A-Za-z0-9])(이\(가\)|은\(는\)|을\(를\)|과\(와\)|와\(과\)|를\(을\)|가\(이\)|는\(은\)|\(으\)로|이\(라\)|아\(야\))/g,(all,ch,j)=>{
+    const b = hasBatchim(ch);
+    const pairs = {"이(가)":["이","가"],"가(이)":["이","가"],"은(는)":["은","는"],"는(은)":["은","는"],"을(를)":["을","를"],
+      "를(을)":["을","를"],"과(와)":["과","와"],"와(과)":["과","와"],"(으)로":["으로","로"],"이(라)":["이라","라"],"아(야)":["아","야"]};
+    const p = pairs[j]; if (!p) return all;
+    if (j==="(으)로" && ch.charCodeAt(0)>=0xAC00 && (ch.charCodeAt(0)-0xAC00)%28===8) return ch+"로";
+    return ch + (b ? p[0] : p[1]);
+  });
+}
+function fill(t){
+  if (!t) return "";
+  t = t.replace(/<(\w+)>/g,(all,k)=>{
+    if (k==="dynasty") return String(S.year);
+    if (k==="age") return String(S.age);
+    return NAMES[k] !== undefined ? (NAMES[k] || "누군가") : all;
+  });
+  return fixJosa(t);
+}
+
+/* ---------- 화면 ---------- */
+const $ = id => document.getElementById(id);
+const card = $("card"), choice = $("choice");
+function buildStats(){
+  $("stats").innerHTML = STATS.map(s => `<div class="stat" id="st-${s.v}">
+      <div class="dot"></div>
+      <div class="icon" role="meter" aria-label="${s.k}" aria-valuemin="0" aria-valuemax="100">
+        <img src="img/${s.img}.webp" alt=""><div class="fill"><img src="img/${s.img}.webp" alt=""></div></div>
+      <div class="lbl">${s.k}</div></div>`).join("");
+}
+function drawStats(prev){
+  for (const s of STATS){
+    const v = Math.max(0, Math.min(100, S.st[s.v]));
+    const el = $("st-"+s.v), icon = el.querySelector(".icon");
+    el.querySelector(".fill").style.clipPath = `inset(${100-v}% 0 0 0)`;
+    icon.setAttribute("aria-valuenow", v);
+    if (prev && prev[s.v] !== S.st[s.v]){
+      icon.classList.remove("up","down"); void icon.offsetWidth;
+      icon.classList.add(S.st[s.v] > prev[s.v] ? "up" : "down");
+    }
+  }
+}
+function drawBar(){
+  $("king").textContent = `해동 제${S.dynasty}대 왕`;
+  $("years").textContent = `재위 ${S.age}년 · 해동 ${S.year}년`;
+  $("app").classList.toggle("dungeon", !!S.vars.intheDungeon || (cur && cur.card && /^dungeon/.test(cur.card.char||"")));
+}
+function imgOf(ch){
+  ch = (ch||"").split(">")[0];
+  if (ch === "dungeon") return "img/bg_dungeon.webp";
+  if (ch === "end" || !ch) return "";
+  return `img/char_${ch}.webp`;
+}
+function show(){
+  card.className = ""; card.style.transform = ""; card.style.opacity = "";
+  choice.style.opacity = 0;
+  const img = card.querySelector("img");
+  let text = "", who = "", src = "";
+  if (cur.kind === "grammar"){
+    card.classList.add("grammar");
+    text = `전하, 여쭙겠사옵니다.\n「${cur.isO ? cur.g.o : cur.g.x}」\n(${cur.g.u})`;
+    who = "대제학"; src = "img/char_priest.webp";
+    cur.R = {c:"옳다"}; cur.L = {c:"그르다"};
+  } else if (cur.kind === "explain"){
+    card.classList.add("grammar");
+    text = cur.text; who = "대제학"; src = "img/char_priest.webp";
+    cur.R = {c:"알겠다"}; cur.L = {c:"알겠다"};
+  } else if (cur.kind === "result"){
+    text = cur.text; who = cur.who; src = cur.src;
+    cur.R = {c:""}; cur.L = {c:""};
+  } else {
+    const c = cur.card, ch = (c.char||"").split(">")[0];
+    if (ch === "end") card.classList.add("end");
+    text = fill(c.text); who = ch==="end" ? "" : (NAMES[ch] ?? ch); src = imgOf(c.char);
+    cur.R = {c:fill(c.R.c)}; cur.L = {c:fill(c.L.c)};
+  }
+  $("q").textContent = text;
+  $("who").textContent = who;
+  if (src){ img.src = src; img.style.display = ""; } else img.style.display = "none";
+  card.setAttribute("aria-label", `${who} 카드. 오른쪽: ${cur.R.c||"넘기기"}, 왼쪽: ${cur.L.c||"넘기기"}`);
+  drawBar();
+}
+function preview(side){
+  for (const s of STATS) $("st-"+s.v).querySelector(".dot").className = "dot";
+  if (!side || cur.kind !== "story") {
+    if (side && cur.kind === "grammar") $("st-spiritual").querySelector(".dot").className = "dot on big";
+    return;
+  }
+  const eff = (side === "R" ? cur.card.R : cur.card.L).s || {};
+  for (const [k,val] of Object.entries(eff)){
+    const v = KEY_OF[k]; if (!v) continue;
+    const p = String(val);
+    if (p.includes("?")) continue;
+    const n = Math.abs(parseInt(p,10)||0);
+    if (!n) continue;
+    $("st-"+v).querySelector(".dot").className = "dot on" + (n >= 15 ? " big" : "");
+  }
+}
+
+/* ---------- 고르기 ---------- */
+function choose(side){
+  preview(null);
+  const prev = {...S.st};
+  if (cur.kind === "grammar"){
+    const right = (side === "R") === cur.isO;
+    S.st.spiritual += right ? 10 : -10;
+    S.year++; S.age++;
+    const fix = cur.isO ? `옳은 문장: ${cur.g.o}` : `바르게 고치면: ${cur.g.e}`;
+    cur = {kind:"explain", text:(right ? "맞히셨사옵니다!\n" : "아니옵니다, 전하.\n") + fix};
+    finishTurn(prev); return;
+  }
+  if (cur.kind === "explain" || cur.kind === "result"){ cur = null; finishTurn(prev); return; }
+  const c = cur.card, opt = side === "R" ? c.R : c.L;
+  if ((c.char||"").startsWith("end")){ cur = {kind:"death", endCard:c}; return finishTurn(prev); }
+  // 수치
+  for (const [k,val] of Object.entries(opt.s || {})){
+    const v = KEY_OF[k]; if (!v) continue;
+    if (lockedStat(v)) continue;
+    S.st[v] += parseVal(val).n;
+  }
+  run(opt.cmd, c);
+  // 다시 나오기까지
+  const w = c.wait;
+  S.seen[c.id] = w === "del" ? "del" : w === "reign" ? "reign" : S.year + (Number(w) || 20);
+  S.year++; S.age++;
+  yearlyEffects();
+  const res = fill(opt.r);
+  cur = res ? {kind:"result", text:res, who:$("who").textContent, src:card.querySelector("img").getAttribute("src")} : null;
+  finishTurn(prev);
+}
+function lockedStat(v){
+  for (const tag of Object.keys(S.effects)){
+    const e = EFFECT_BY_TAG.get(tag); if (!e) continue;
+    for (const [k,val] of Object.entries(e.yearly||{})) if (KEY_OF[k]===v && val==="lock") return true;
+  }
+  return false;
+}
+function yearlyEffects(){
+  for (const tag of Object.keys(S.effects)){
+    if (!S.vars[tag]) { delete S.effects[tag]; continue; }
+    const e = EFFECT_BY_TAG.get(tag);
+    for (const [k,val] of Object.entries(e.yearly||{})){
+      const m = String(val).match(/^(-?[\d.]*\d)\*$/);
+      if (m && KEY_OF[k]) S.st[KEY_OF[k]] += Number(m[1]);
+    }
+    if (S.effects[tag] > 0 && --S.effects[tag] === 0){ delete S.effects[tag]; delete S.vars[tag]; }
+  }
+}
+function finishTurn(prev){
+  for (const s of STATS) S.st[s.v] = Math.max(0, Math.min(100, Math.round(S.st[s.v])));
+  drawStats(prev);
+  if (!cur) cur = nextCard();
+  if (cur.kind === "death") return die(cur.endCard);
+  save(); show();
+}
+
+/* ---------- 죽음과 즉위 ---------- */
+function deathName(endCard){
+  const reign = S.age;
+  if (S.dynasty === 1) return "건조";
+  if (reign < 3) return "촉종";
+  if (reign >= 60) return "수종";
+  for (const s of STATS){
+    if (S.st[s.v] <= 0) return DEATH_NAME[s.v][0];
+    if (S.st[s.v] >= 100) return DEATH_NAME[s.v][1];
+  }
+  return PLAIN_NAMES[Math.floor(Math.random()*PLAIN_NAMES.length)];
+}
+function die(endCard){
+  const name = deathName(endCard);
+  S.kings.push({n:S.dynasty, name, from:S.reignStart, to:S.year});
+  $("dName").textContent = `해동 제${S.dynasty}대 ${name}`;
+  $("dInfo").textContent = `재위 ${S.age}년 (해동 ${S.reignStart}년 ~ ${S.year}년)`;
+  $("death").classList.add("on"); $("btnNext").focus();
+  S.dynasty++; newReign(); save();
+}
+$("btnNext").onclick = () => { $("death").classList.remove("on"); drawStats(); cur = nextCard(); show(); card.focus(); };
+
+/* ---------- 끌기 ---------- */
+let drag = null;
+card.addEventListener("pointerdown", e => {
+  if (!cur) return;
+  drag = {x:e.clientX, dx:0}; card.setPointerCapture(e.pointerId); card.classList.add("drag");
+});
+card.addEventListener("pointermove", e => {
+  if (!drag) return;
+  drag.dx = e.clientX - drag.x;
+  const w = card.offsetWidth, r = Math.max(-1, Math.min(1, drag.dx / (w*0.6)));
+  card.style.transform = `translateX(${drag.dx}px) rotate(${r*12}deg)`;
+  const side = r > 0.15 ? "R" : r < -0.15 ? "L" : null;
+  const label = side ? cur[side].c : "";
+  choice.textContent = label; choice.className = side === "R" ? "r" : "l";
+  choice.style.opacity = side && label ? 1 : 0;
+  preview(side);
+});
+function endDrag(){
+  if (!drag) return;
+  const w = card.offsetWidth, dx = drag.dx; drag = null; card.classList.remove("drag");
+  if (Math.abs(dx) > w*0.35) fly(dx > 0 ? "R" : "L");
+  else { card.style.transform = ""; choice.style.opacity = 0; preview(null); }
+}
+card.addEventListener("pointerup", endDrag);
+card.addEventListener("dragstart", e => e.preventDefault());
+card.addEventListener("pointercancel", endDrag);
+let busy = false;
+function fly(side){
+  if (busy) return; busy = true;
+  card.classList.add("fly");
+  card.style.transform = `translateX(${side==="R"?"":"-"}150%) rotate(${side==="R"?"":"-"}25deg)`;
+  card.style.opacity = 0;
+  setTimeout(() => { busy = false; choose(side); }, 280);
+}
+document.addEventListener("keydown", e => {
+  if ($("title").classList.contains("on") || $("death").classList.contains("on") || !cur) return;
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft"){
+    e.preventDefault();
+    const side = e.key === "ArrowRight" ? "R" : "L";
+    choice.textContent = cur[side].c; choice.className = side === "R" ? "r" : "l";
+    choice.style.opacity = cur[side].c ? 1 : 0; preview(side);
+    fly(side);
+  }
+});
+
+/* ---------- 시작 화면 ---------- */
+$("units").innerHTML = GRAMMAR_UNITS.map((u,i) =>
+  `<label><input type="checkbox" value="${u}" checked> ${u}</label>`).join("");
+const saved = load();
+if (saved && saved.st) $("btnCont").hidden = false;
+$("btnNew").onclick = () => {
+  const units = [...document.querySelectorAll("#units input:checked")].map(i => i.value);
+  if (!units.length){ $("msg").textContent = "단원을 하나 이상 골라 주세요."; return; }
+  newGame(units); start();
+};
+$("btnCont").onclick = () => { S = load(); if (!S){ $("msg").textContent = "저장된 기록을 불러오지 못했습니다."; return; } start(); };
+function start(){
+  $("title").classList.remove("on");
+  drawStats(); cur = nextCard(); show(); card.focus();
+}
+buildStats();
+$("title").classList.add("on");
+window.__debug = { get S(){return S;}, skipped, choose, get cur(){return cur;} };
+</script>
+</body>
+</html>
