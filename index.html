@@ -94,6 +94,7 @@ body{background:#1a1714;color:var(--ink);font-family:"Noto Serif KR",serif;overf
 #toast.on{transform:translate(-50%,0);opacity:1}
 #flash{inset:0;z-index:6;pointer-events:none;background:#b5241a;opacity:0}
 #flash.on{animation:flash .7s}
+#flash.gold{background:#ffd36a}
 @keyframes flash{20%{opacity:.55}100%{opacity:0}}
 
 /* 덮개 화면 */
@@ -530,7 +531,9 @@ function choose(side){
   cur = res ? {kind:"result", text:res, who:$("who").textContent, src:card.querySelector("img").getAttribute("src")} : null;
   finishTurn(prev);
 }
+let justGrammar = false;
 function chooseGrammar(side, prev){
+  justGrammar = true;
   const right = (side === "R") === cur.isO, g = cur.g, eff = cur.eff;
   const sign = right ? 1 : -1;
   if (eff.rescue){
@@ -548,8 +551,13 @@ function chooseGrammar(side, prev){
     META.streak = (META.streak||0) + 1; maxOf("gStreak", META.streak);
     vibe("right");
   } else { META.streak = 0; vibe("wrong"); shake(); }
-  const fix = cur.isO ? `옳은 문장: ${g.o}` : `바르게 고치면: ${g.e}`;
-  cur = {kind:"explain", right, text:(right ? "맞히셨사옵니다!\n" : "아니옵니다, 전하.\n") + fix + "\n" + changeLine(prev)};
+  if (right){                                   // 맞히면 해설 없이 바로 다음 카드
+    cur = null;
+    toast("맞히셨사옵니다! " + changeLine(prev));
+    const f = $("flash"); f.classList.remove("on","gold"); void f.offsetWidth; f.classList.add("on","gold");
+    return finishTurn(prev);
+  }
+  cur = {kind:"explain", right, text:"아니옵니다, 전하.\n바르게 고치면: " + (cur.isO ? g.o : g.e) + "\n" + changeLine(prev)};
   finishTurn(prev);
 }
 function changeLine(prev){
@@ -588,8 +596,9 @@ function finishTurn(prev){
     big = Math.max(big, Math.abs(S.st[s.v] - prev[s.v]));
   }
   drawStats(prev);
-  if (big >= 10 && !(cur && cur.kind === "explain")){ vibe("big"); shake(); }
-  else if (big > 0) vibe("swipe");
+  if (big >= 10 && !(cur && cur.kind === "explain") && !justGrammar){ vibe("big"); shake(); }
+  else if (big > 0 && !justGrammar) vibe("swipe");
+  justGrammar = false;
   maxOf("reignMax", S.age); maxOf("yearMax", S.year);
   if (!cur) cur = nextCard();
   checkAch();
@@ -617,7 +626,7 @@ function die(){
   $("dName").textContent = `해동 제${S.dynasty}대 ${name}`;
   $("dInfo").textContent = `재위 ${S.age}년 (해동 ${S.reignStart}년 ~ ${S.year}년)\n문법 문답 ${S.rg.all}번 가운데 ${S.rg.right}번 맞힘`;
   $("dInfo").style.whiteSpace = "pre-line";
-  $("flash").classList.remove("on"); void $("flash").offsetWidth; $("flash").classList.add("on");
+  $("flash").classList.remove("on","gold"); void $("flash").offsetWidth; $("flash").classList.add("on");
   vibe("death");
   S.dynasty++; newReign(); save(); saveMeta();
   setTimeout(() => { $("death").classList.add("on"); $("btnNext").focus(); }, 450);
@@ -870,7 +879,7 @@ function showInstall(){
        <b>둘</b> · 아래로 내려 「홈 화면에 추가」를 누른다<br>
        <b>셋</b> · 오른쪽 위 「추가」를 누른다`
     : `<b>하나</b> · 브라우저 메뉴 <b style="color:#f3d891">⋮</b> 또는 <b style="color:#f3d891">☰</b> 를 누른다<br>
-       <b>둘</b> · 「다른 브라우져로 열기」 후 「홈 화면에 추가」 또는 「앱 설치」를 누른다`;
+       <b>둘</b> · 「홈 화면에 추가」 또는 「앱 설치」를 누른다`;
   openVeil("vInstall");
 }
 function maybeOfferInstall(){                   // 세 번째로 들어왔을 때 평생 한 번만
